@@ -118,7 +118,7 @@ SH_BuildClientIndex() {
 }
 
 SH_SpecHUD_Update() {
-	for(new client = 1;client < MaxClients+1;client++) {
+	for(new client = 1;client <= MaxClients;client++) {
 		if(!IsClientInGame(client) || GetClientTeam(client) != TEAM_SPECTATORS || !g_bSH_SpecHUD_ShowPanel[client] || IsFakeClient(client)){continue;}
 		SendPanelToClient(g_hSH_SpecHUD, client, SH_SpecHUD_MenuHandler, 3);
 		

@@ -340,7 +340,7 @@ GT_OnClientDisconnect(client)
 
 GT_SpecHUD_ResetHint()
 {
-	for(new client = 1;client < MaxClients+1;client++)
+	for(new client = 1;client <= MaxClients;client++)
 	{
 		g_bGT_SpecHUD_ShowHint[client] = true;
 	}
@@ -349,7 +349,7 @@ GT_SpecHUD_ResetHint()
 GT_SpecHUD_Update()
 {
 	decl team;
-	for(new client = 1;client < MaxClients+1;client++)
+	for(new client = 1;client <= MaxClients;client++)
 	{
 		
 		if(!IsValidClient(client)) continue;

@@ -240,7 +240,8 @@ static KillRegisteredItems()
 {
 	decl ItemList:itemindex;
 	new psychonic = GetEntityCount();
-	for(new i =0; i < psychonic; i++)
+
+	for(new i = (MaxClients + 1); i <= psychonic; i++)
 	{
 		if(IsValidEntity(i))
 		{
@@ -307,7 +308,8 @@ static EnumerateSpawns()
 	new ItemList:itemindex;
 	decl curitem[ItemTracking], Float:origins[3], Float:angles[3];
 	new psychonic = GetEntityCount();
-	for(new i =0; i < psychonic; i++)
+
+	for(new i = (MaxClients + 1); i <= psychonic; i++)
 	{
 		if(IsValidEntity(i))
 		{

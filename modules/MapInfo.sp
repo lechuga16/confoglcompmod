@@ -247,7 +247,8 @@ static stock Float:FindStartPointHeuristic(Float:result[3])
 	new Float:averageOrigin[3];
 	new entcount = GetEntityCount();
 	decl String:entclass[128];
-	for(new iEntity = 1;iEntity<=entcount && kits <4;iEntity++)
+
+	for(new iEntity = (MaxClients + 1); iEntity <= entcount && kits < 4; iEntity++)
 	{
 		if(!IsValidEdict(iEntity) || !IsValidEntity(iEntity)){continue;}
 		GetEdictClassname(iEntity,entclass,sizeof(entclass));

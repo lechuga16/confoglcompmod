@@ -70,7 +70,7 @@ public Action:_CheckClientSettings_Timer(Handle:timer)
 
 static EnforceAllCliSettings()
 {
-	for(new client = 1; client < MaxClients+1; client++)
+	for(new client = 1; client <= MaxClients; client++)
 	{
 		if(IsClientInGame(client) && !IsFakeClient(client))
 		{
