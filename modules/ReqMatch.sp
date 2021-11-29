@@ -303,7 +303,7 @@ RM_ResetMatchRequest()
 	RM_bMatchRequest[1] = false;
 }
 
-bool:IsAMatchActive()
+stock bool:IsAMatchActive()
 {
 	return RM_bIsAMatchActive;
 }

@@ -3,7 +3,7 @@
 #if defined(AUTOVERSION)
 #include "version.inc"
 #else
-#define PLUGIN_VERSION	"2.2.3"
+#define PLUGIN_VERSION	"2.2.4"
 #endif
 
 #if !defined(DEBUG_ALL)
@@ -12,7 +12,6 @@
 
 #include <sourcemod>
 #include <sdktools>
-#include <socket>
 #include <sdkhooks>
 #include <left4downtown>
 #include "includes/constants.sp"
@@ -33,7 +32,6 @@
 #include "modules/UnprohibitBosses.sp"
 #include "modules/PasswordSystem.sp"
 #include "modules/BotKick.sp"
-#include "modules/CheckVersion.sp"
 #include "modules/EntityRemover.sp"
 #include "modules/ScoreMod.sp"
 #include "modules/FinaleSpawn.sp"
@@ -74,7 +72,6 @@ public OnPluginStart()
 	UB_OnModuleStart();
 	
 	BK_OnModuleStart();
-	CV_OnModuleStart();
 	
 	SM_OnModuleStart();
 	FS_OnModuleStart();
@@ -147,7 +144,6 @@ public OnClientPutInServer(client)
 	RM_OnClientPutInServer();
 	UL_OnClientPutInServer();
 	PS_OnClientPutInServer(client);
-	CV_OnClientPutInServer();
 }
 
 public Action:OnPlayerRunCmd(client, &buttons, &impulse, Float:vel[3], Float:angles[3], &weapon)
