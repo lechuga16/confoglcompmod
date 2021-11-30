@@ -3,57 +3,78 @@
 #endif
 #define __water_slowdown_included
 
-new bool:WS_bEnabled = true;
-new Handle:WS_hEnable;
-new Handle:WS_hFactor;
+static float
+	WS_fSlowdownFactor = 0.90;
 
-new bool:WS_bPlayerInWater[MAXPLAYERS+1];
-new bool:WS_bJockeyInWater = false;
+static bool
+	WS_bEnabled = true,
+	WS_bJockeyInWater = false,
+	WS_bPlayerInWater[MAXPLAYERS + 1] = {false, ...};
 
-WS_OnModuleStart()
+static ConVar
+	WS_hEnable = null,
+	WS_hFactor = null;
+
+void WS_OnModuleStart()
 {
-	WS_hEnable = CreateConVarEx("waterslowdown","1", "Enables additional water slowdown");
+	WS_hEnable = CreateConVarEx("waterslowdown", "1", "Enables additional water slowdown", _, true, 0.0, true, 1.0);
 	WS_hFactor = CreateConVarEx("slowdown_factor", "0.90", "Sets how much water will slow down survivors. 1.00 = Vanilla");
-	
-	HookConVarChange(WS_hEnable,WS_ConVarChange);
-	HookEvent("round_start", WS_RoundStart);
+
+	WS_SetStatus();
+	WS_fSlowdownFactor = WS_hFactor.FloatValue;
+
+	WS_hEnable.AddChangeHook(WS_ConVarChange);
+	WS_hFactor.AddChangeHook(WS_FactorConVarChange);
+
+	HookEvent("round_start", WS_RoundStart, EventHookMode_PostNoCopy);
 	HookEvent("jockey_ride", WS_JockeyRide);
 	HookEvent("jockey_ride_end", WS_JockeyRideEnd);
 }
 
-WS_OnModuleEnd()
+public void WS_FactorConVarChange(ConVar hConVar, const char[] sOldValue[], const char[] sNewValue)
+{
+	WS_fSlowdownFactor = WS_hFactor.FloatValue;
+}
+
+public void WS_ConVarChange(ConVar hConVar, const char[] sOldValue[], const char[] sNewValue)
+{
+	WS_SetStatus();
+}
+
+void WS_OnMapEnd()
 {
 	WS_SetStatus(false);
 }
 
-WS_OnGameFrame()
+void WS_OnModuleEnd()
 {
-	if(!IsServerProcessing() || !IsPluginEnabled() || !WS_bEnabled){return;}
-	decl client, flags;
-	
-	for(new i=0;i<NUM_OF_SURVIVORS;i++)
-	{
+	WS_SetStatus(false);
+}
+
+void WS_OnGameFrame()
+{
+	if (!IsServerProcessing() || !IsPluginEnabled() || !WS_bEnabled) {
+		return;
+	}
+
+	int client, flags;
+
+	for (int i = 0; i < NUM_OF_SURVIVORS; i++) {
 		client = GetSurvivorIndex(i);
-		if(client != 0 && IsValidEntity(client))
-		{
+
+		if (client != 0 && IsValidEntity(client)) {
 			flags = GetEntityFlags(client);
-			
-			if(!(flags & IN_JUMP && WS_bPlayerInWater[client]))
-			{
-				if(flags & FL_INWATER)
-				{
-					if(!WS_bPlayerInWater[client])
-					{
+
+			if (!(flags & IN_JUMP && WS_bPlayerInWater[client])) {
+				if (flags & FL_INWATER) {
+					if (!WS_bPlayerInWater[client]) {
 						WS_bPlayerInWater[client] = true;
-						SetEntPropFloat(client,Prop_Send,"m_flLaggedMovementValue",GetConVarFloat(WS_hFactor));
+						SetEntPropFloat(client, Prop_Send, "m_flLaggedMovementValue", WS_fSlowdownFactor);
 					}
-				}
-				else
-				{
-					if(WS_bPlayerInWater[client])
-					{
+				} else {
+					if (WS_bPlayerInWater[client]) {
 						WS_bPlayerInWater[client] = false;
-						SetEntPropFloat(client,Prop_Send,"m_flLaggedMovementValue",1.0);
+						SetEntPropFloat(client, Prop_Send, "m_flLaggedMovementValue", 1.0);
 					}
 				}
 			}
@@ -61,55 +82,42 @@ WS_OnGameFrame()
 	}
 }
 
-public WS_ConVarChange(Handle:convar, const String:oldValue[], const String:newValue[])
+public void WS_RoundStart(Event hEvent, const char[] sEventName, bool bDontBroadcast)
 {
 	WS_SetStatus();
 }
 
-public Action:WS_RoundStart(Handle:event, const String:name[], bool:dontBroadcast)
+public void WS_JockeyRide(Event hEvent, const char[] sEventName, bool bDontBroadcast)
 {
-	WS_SetStatus();
-}
+	int victim = GetClientOfUserId(hEvent.GetInt("victim"));
+	int jockey = GetClientOfUserId(hEvent.GetInt("userid"));
 
-WS_OnMapEnd()
-{
-	WS_SetStatus(false);
-}
-
-public Action:WS_JockeyRide(Handle:event, const String:name[], bool:dontBroadcast)
-{
-	new victim = GetClientOfUserId(GetEventInt(event, "victim"));
-	new jockey = GetClientOfUserId(GetEventInt(event, "userid"));
-	
-	if(WS_bPlayerInWater[victim] && !WS_bJockeyInWater)
-	{
+	if (WS_bPlayerInWater[victim] && !WS_bJockeyInWater) {
 		WS_bJockeyInWater = true;
-		SetEntPropFloat(jockey,Prop_Send,"m_flLaggedMovementValue",GetConVarFloat(WS_hFactor));
-	}
-	else if(!WS_bPlayerInWater[victim] && WS_bJockeyInWater)
-	{
+		SetEntPropFloat(jockey, Prop_Send, "m_flLaggedMovementValue", WS_fSlowdownFactor);
+	} else if (!WS_bPlayerInWater[victim] && WS_bJockeyInWater) {
 		WS_bJockeyInWater = false;
-		SetEntPropFloat(jockey,Prop_Send,"m_flLaggedMovementValue",1.0);
+		SetEntPropFloat(jockey, Prop_Send, "m_flLaggedMovementValue", 1.0);
 	}
 }
 
-public Action:WS_JockeyRideEnd(Handle:event, const String:name[], bool:dontBroadcast)
+public void WS_JockeyRideEnd(Event hEvent, const char[] sEventName, bool bDontBroadcast)
 {
-	new jockey = GetClientOfUserId(GetEventInt(event, "userid"));
-	
+	int jockey = GetClientOfUserId(hEvent.GetInt("userid"));
+
 	WS_bJockeyInWater = false;
-	if(jockey && IsValidEntity(jockey))
-	{
-		SetEntPropFloat(jockey,Prop_Send,"m_flLaggedMovementValue",1.0);
+
+	if (jockey > 0 && IsValidEntity(jockey)) {
+		SetEntPropFloat(jockey, Prop_Send, "m_flLaggedMovementValue", 1.0);
 	}
 }
 
-WS_SetStatus(bool:enable=true)
+static void WS_SetStatus(bool bEnable = true)
 {
-	if(!enable)
-	{
+	if (!bEnable) {
 		WS_bEnabled = false;
 		return;
 	}
-	WS_bEnabled = GetConVarBool(WS_hEnable);
+
+	WS_bEnabled = WS_hEnable.BoolValue;
 }
