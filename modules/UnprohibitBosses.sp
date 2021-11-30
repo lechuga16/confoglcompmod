@@ -3,53 +3,54 @@
 #endif
 #define __unprohibit_bosses_included
 
-new Handle:UB_hEnable;
-new bool:UB_bEnabled = true;
+static bool
+	UB_bEnabled = true;
 
-UB_OnModuleStart()
+static ConVar
+	UB_hEnable = null;
+
+void UB_OnModuleStart()
 {
-	UB_hEnable = CreateConVarEx("boss_unprohibit", "1", "Enable bosses spawning on all maps, even through they normally aren't allowed");
-	
-	HookConVarChange(UB_hEnable,UB_ConVarChange);
-	
-	UB_bEnabled = GetConVarBool(UB_hEnable);
+	UB_hEnable = CreateConVarEx("boss_unprohibit", "1", "Enable bosses spawning on all maps, even through they normally aren't allowed", _, true, 0.0, true, 1.0);
+
+	UB_bEnabled = UB_hEnable.BoolValue; //turns on when changing cvar only
+	UB_hEnable.AddChangeHook(UB_ConVarChange);
 }
 
-public UB_ConVarChange(Handle:convar, const String:oldValue[], const String:newValue[])
+public void UB_ConVarChange(ConVar hConVar, const char[] sOldValue, const char[] sNewValue)
 {
-	UB_bEnabled = GetConVarBool(UB_hEnable);
+	UB_bEnabled = UB_hEnable.BoolValue;
 }
 
-Action:UB_OnGetScriptValueInt(const String:key[], &retVal)
+Action UB_OnGetScriptValueInt(const char[] key, int &retVal)
 {
-	if(IsPluginEnabled() && UB_bEnabled)
-	{
-		if(StrEqual(key, "DisallowThreatType"))
-		{
+	if (IsPluginEnabled() && UB_bEnabled) {
+		if (strcmp(key, "DisallowThreatType") == 0) {
 			retVal = 0;
 			return Plugin_Handled;
 		}
-		
-		if(StrEqual(key, "ProhibitBosses"))
-		{
+
+		if (strcmp(key, "ProhibitBosses") == 0) {
 			retVal = 0;
-			return Plugin_Handled;		
+			return Plugin_Handled;
 		}
 	}
+
 	return Plugin_Continue;
 }
 
-Action:UB_OnGetMissionVSBossSpawning()
+Action UB_OnGetMissionVSBossSpawning()
 {
-	if(UB_bEnabled)
-	{
-		decl String:mapbuf[32];
+	//if (IsPluginEnabled() && UB_bEnabled) {
+	if (UB_bEnabled) {
+		char mapbuf[32];
 		GetCurrentMap(mapbuf, sizeof(mapbuf));
-		if(StrEqual(mapbuf, "c7m1_docks") || StrEqual(mapbuf, "c13m2_southpinestream"))
-		{
+		if (strcmp(mapbuf, "c7m1_docks") == 0 || strcmp(mapbuf, "c13m2_southpinestream") == 0) {
 			return Plugin_Continue;
 		}
+
 		return Plugin_Handled;
 	}
+
 	return Plugin_Continue;
 }
