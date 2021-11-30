@@ -109,6 +109,15 @@ stock CopyVector(Float:to[3], Float:from[3])
 
 stock GetURandomIntRange(min, max) { return RoundToNearest((GetURandomFloat() * (max-min))+min); }
 
+stock void KillEntity(int iEntity)
+{
+#if SOURCEMOD_V_MINOR > 8
+	RemoveEntity(iEntity);
+#else
+	AcceptEntityInput(iEntity, "Kill");
+#endif
+}
+
 /**
  * Finds the first occurrence of a pattern in another string.
  *

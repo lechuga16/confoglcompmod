@@ -74,7 +74,7 @@ public void BS_WitchSpawn(Event hEvent, const char[] sEventName, bool bDontBroad
 
 	if (BS_bDeleteWitches) {
 		// Used to delete round2 extra witches, which spawn on round start instead of by flow
-		AcceptEntityInput(iWitch, "Kill");
+		KillEntity(iWitch);
 		return;
 	}
 

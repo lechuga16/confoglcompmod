@@ -61,7 +61,7 @@ public Action:WC_PlayerUse_Event(Handle:event, const String:name[], bool:dontBro
 			{
 				if (IsValidEdict(WC_iLastWeapon))
 				{
-					AcceptEntityInput(WC_iLastWeapon, "Kill");
+					KillEntity(WC_iLastWeapon);
 					new flags = GetCommandFlags("give");
 					SetCommandFlags("give", flags ^ FCVAR_CHEAT);
 					

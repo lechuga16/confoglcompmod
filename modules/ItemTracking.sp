@@ -261,10 +261,11 @@ static KillRegisteredItems()
 				else
 				{
 					// Kill items we're tracking;
-					if(!AcceptEntityInput(i, "kill"))
+					KillEntity(i);
+					/*if(!AcceptEntityInput(i, "kill"))
 					{
 						LogError("[IT] Error killing instance of item %s", g_sItemNames[itemindex][IN_longname]);
-					}
+					}*/
 				}
 			}
 		}
@@ -320,17 +321,25 @@ static EnumerateSpawns()
 			{
 				if (IsEntityInSaferoom(i, START_SAFEROOM))
 				{
-					if(g_iSaferoomCount[START_SAFEROOM - 1] < g_iSurvivorLimit)
+					if (g_iSaferoomCount[START_SAFEROOM - 1] < g_iSurvivorLimit) {
 						g_iSaferoomCount[START_SAFEROOM - 1]++;
-					else if(!AcceptEntityInput(i, "kill"))
-						LogError("[IT] Error killing instance of item %s", g_sItemNames[itemindex][IN_longname]);
+					} else {
+						KillEntity(i);
+						/*if (!AcceptEntityInput(i, "kill")) {
+							LogError("[IT] Error killing instance of item %s", g_sItemNames[itemindex][IN_longname]);
+						}*/
+					}
 				}
 				else if (IsEntityInSaferoom(i, END_SAFEROOM)) 
 				{
-					if(g_iSaferoomCount[END_SAFEROOM - 1] < g_iSurvivorLimit)
+					if (g_iSaferoomCount[END_SAFEROOM - 1] < g_iSurvivorLimit) {
 						g_iSaferoomCount[END_SAFEROOM - 1]++;
-					else if(!AcceptEntityInput(i, "kill"))
-						LogError("[IT] Error killing instance of item %s", g_sItemNames[itemindex][IN_longname]);
+					} else {
+						KillEntity(i);
+						/*if (!AcceptEntityInput(i, "kill")) {
+							LogError("[IT] Error killing instance of item %s", g_sItemNames[itemindex][IN_longname]);
+						}*/
+					}
 				}
 				else
 				{
@@ -346,10 +355,12 @@ static EnumerateSpawns()
 						{
 							LogMessage("[IT] Killing spawn");
 						}
-						if(!AcceptEntityInput(i, "kill"))
+
+						KillEntity(i);
+						/*if(!AcceptEntityInput(i, "kill"))
 						{
 							LogError("[IT] Error killing instance of item %s", g_sItemNames[itemindex][IN_longname]);
-						}
+						}*/
 					}
 					else 
 					{
@@ -392,9 +403,11 @@ static RemoveToLimits()
 					LogMessage("[IT] Killing randomly chosen %s (%d) #%d", g_sItemNames[itemidx][IN_longname], itemidx, killidx);
 				}
 				GetArrayArray(g_hItemSpawns[itemidx], killidx, curitem[0]);
-				if(IsValidEntity(curitem[IT_entity]) && !AcceptEntityInput(curitem[IT_entity], "kill"))
-				{
-					LogError("[IT] Error killing instance of item %s", g_sItemNames[itemidx][IN_longname]);
+				if (IsValidEntity(curitem[IT_entity])) {
+					KillEntity(curitem[IT_entity]);
+					/*if (!AcceptEntityInput(curitem[IT_entity], "kill")) {
+						LogError("[IT] Error killing instance of item %s", g_sItemNames[itemidx][IN_longname]);
+					}*/
 				}
 				RemoveFromArray(g_hItemSpawns[itemidx],killidx);
 			}

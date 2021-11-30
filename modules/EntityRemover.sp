@@ -246,7 +246,7 @@ ER_KV_TakeAction(action, iEntity)
 			if(DEBUG_ER || IsDebugEnabled())
 				LogMessage("[ER]     Killing!");
 			
-			AcceptEntityInput(iEntity, "Kill");
+			KillEntity(iEntity);
 			return false;
 		}
 		default:
@@ -266,7 +266,7 @@ bool:ER_KillParachutist(ent)
 		GetEntPropString(ent, Prop_Data, "m_iName", buf, sizeof(buf));
 		if(!strncmp(buf, "parachute_", 10))
 		{
-			AcceptEntityInput(ent, "Kill");
+			KillEntity(ent);
 			return true;
 		}
 	}
@@ -297,8 +297,8 @@ bool:ER_ReplaceTriggerHurtGhost(ent)
 		GetEntPropVector(ent, Prop_Send, "m_angRotation", ang);
 
 		// Kill the old one
-		AcceptEntityInput(ent, "Kill");		
-		
+		KillEntity(ent);
+
 		// Set the values for the new one
 		DispatchKeyValue(replace, "StartDisabled", "0");
 		DispatchKeyValue(replace, "spawnflags", "67");

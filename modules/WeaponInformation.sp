@@ -776,7 +776,7 @@ WI_ReplaceWeapon(iEntity, iWeaponIndex, bool:bSpawnerEvent = false)
 	
 	if(!bSpawnerEvent && Weapon_Attributes[iWeaponIndex][ReplacementIndex] == WEAPON_REMOVE_INDEX && Weapon_bConvar[iWeaponIndex])
 	{
-		AcceptEntityInput(iEntity, "Kill");
+		KillEntity(iEntity);
 		
 		#if(DEBUG_WI)
 			LogMessage("%s         Killing weapon as requested...",DEBUG_WI_PREFIX);
@@ -797,7 +797,7 @@ WI_ReplaceWeapon(iEntity, iWeaponIndex, bool:bSpawnerEvent = false)
 	{
 		GetEntPropVector(iEntity, Prop_Send, "m_vecOrigin", fOrigin);	
 		GetEntPropVector(iEntity, Prop_Send, "m_angRotation", fRotation);
-		AcceptEntityInput(iEntity, "Kill");
+		KillEntity(iEntity);
 		
 		iEntity = CreateEntityByName("weapon_spawn");
 		SetEntProp(iEntity,Prop_Send,"m_weaponID",Weapon_Attributes[iWeaponIndex][WeaponID]);
@@ -970,7 +970,7 @@ WI_ReplaceExtra(iEntity,iWeaponIndex)
 	
 	if(Weapon_Attributes[iWeaponIndex][ReplacementIndex] == WEAPON_REMOVE_INDEX && Weapon_bConvar[iWeaponIndex] && iWeaponIndex != WEAPON_FIRST_AID_KIT_INDEX)
 	{
-		AcceptEntityInput(iEntity, "Kill");
+		KillEntity(iEntity);
 		
 		#if(DEBUG_WI)
 			LogMessage("%s         Killing weapon as requested...",DEBUG_WI_PREFIX);
@@ -1037,7 +1037,7 @@ WI_ReplaceExtra(iEntity,iWeaponIndex)
 	if(Weapon_bRemoveExtraItems &&
 		(bIsInEndSaferoom || (bIsInStartSaferoomExtra && iWeaponIndex != WEAPON_FIRST_AID_KIT_INDEX)))
 	{
-		AcceptEntityInput(iEntity, "Kill");
+		KillEntity(iEntity);
 		
 		#if(DEBUG_WI)
 			LogMessage("%s         Extra item is within a safe room, killing...",DEBUG_WI_PREFIX);
@@ -1069,8 +1069,8 @@ WI_ReplaceExtra(iEntity,iWeaponIndex)
 	
 	if(Weapon_bConvar[iWeaponIndex] && !bIsInStartSaferoom && !bIsInFinaleArea)
 	{
-		AcceptEntityInput(iEntity, "Kill");
-		
+		KillEntity(iEntity);
+
 		#if(DEBUG_WI)
 			LogMessage("%s         Static medkit outside saferoom and finale, killing...",DEBUG_WI_PREFIX);
 			LogMessage("%s     }",DEBUG_WI_PREFIX);
@@ -1081,8 +1081,8 @@ WI_ReplaceExtra(iEntity,iWeaponIndex)
 	
 	if(Weapon_iKitCount >= WEAPON_NUMBER_OF_START_KITS && bIsInStartSaferoom)
 	{
-		AcceptEntityInput(iEntity, "Kill");
-		
+		KillEntity(iEntity);
+
 		#if(DEBUG_WI)
 			LogMessage("%s         More than 4 saferoom medkits found, killing entity...",DEBUG_WI_PREFIX);
 			LogMessage("%s     }",DEBUG_WI_PREFIX);
@@ -1095,7 +1095,8 @@ WI_ReplaceExtra(iEntity,iWeaponIndex)
 	{
 		decl Float:fRotation[3], String:sSpawnBuffer[128];
 		GetEntPropVector(iEntity, Prop_Send, "m_angRotation", fRotation);
-		AcceptEntityInput(iEntity, "Kill");
+		KillEntity(iEntity);
+		
 		Format(sSpawnBuffer,sizeof(sSpawnBuffer),"%s%s%s",SPAWN_PREFIX,Weapon_Spawns[WEAPON_PAIN_PILLS_INDEX],SPAWN_SURFIX);
 		iEntity = CreateEntityByName(sSpawnBuffer);
 		TeleportEntity(iEntity, fOrigin, fRotation, NULL_VECTOR);
@@ -1110,7 +1111,7 @@ WI_ReplaceExtra(iEntity,iWeaponIndex)
 	{
 		decl Float:fRotation[3], String:sSpawnBuffer[128];
 		GetEntPropVector(iEntity, Prop_Send, "m_angRotation", fRotation);
-		AcceptEntityInput(iEntity, "Kill");
+		KillEntity(iEntity);
 		Format(sSpawnBuffer,sizeof(sSpawnBuffer),"%s%s%s",SPAWN_PREFIX,Weapon_Spawns[WEAPON_PAIN_PILLS_INDEX],SPAWN_SURFIX);
 		iEntity = CreateEntityByName(sSpawnBuffer);
 		TeleportEntity(iEntity, fOrigin, fRotation, NULL_VECTOR);
@@ -1253,7 +1254,7 @@ public Action:WI_RoundStartLoop(Handle:timer)
 		
 		if(Weapon_bRemoveLaserSight && StrContains(entclass,"upgrade_laser_sight") != -1)
 		{
-			AcceptEntityInput(iEntity, "Kill");
+			KillEntity(iEntity);
 			#if(DEBUG_WI)
 				LogMessage("%s Killing laser sight...",DEBUG_WI_PREFIX);
 			#endif
