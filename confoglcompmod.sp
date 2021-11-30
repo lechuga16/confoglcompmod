@@ -65,8 +65,10 @@ public Plugin myinfo =
 
 public void OnPluginStart()
 {
+	FNS_OnPluginStart();
 	Debug_OnModuleStart();
 	Configs_OnModuleStart();
+
 	MI_OnModuleStart();
 	SI_OnModuleStart();
 	WI_OnModuleStart();
