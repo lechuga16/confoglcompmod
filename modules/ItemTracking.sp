@@ -279,7 +279,8 @@ static SpawnItems()
 	new arrsize;
 	new itement;
 	decl String:sModelname[PLATFORM_MAX_PATH];
-	new WeaponIDs:wepid;
+	int wepid;
+
 	for(new itemidx = 0; itemidx < _:ItemList; itemidx++)
 	{
 		Format(sModelname, sizeof(sModelname), "models/w_models/weapons/w_eq_%s.mdl", g_sItemNames[itemidx][IN_modelname]);
@@ -449,8 +450,7 @@ static GetItemLimit(ItemList:itemidx)
 	return g_iItemLimits[itemidx];
 }
 
-
-static WeaponIDs:GetWeaponIDFromItemList(ItemList:id)
+static int GetWeaponIDFromItemList(ItemList:id)
 {
 	switch(id)
 	{
@@ -479,7 +479,8 @@ static WeaponIDs:GetWeaponIDFromItemList(ItemList:id)
 		
 		}
 	}
-	return WeaponIDs:-1;
+
+	return -1;
 }
 
 static ItemList:GetItemIndexFromEntity(entity)
@@ -494,7 +495,7 @@ static ItemList:GetItemIndexFromEntity(entity)
 	
 	if(StrEqual(classname, "weapon_spawn") || StrEqual(classname, "weapon_item_spawn"))
 	{
-		new WeaponIDs:id = WeaponIDs:GetEntProp(entity, Prop_Send, "m_weaponID");
+		int id = GetEntProp(entity, Prop_Send, "m_weaponID");
 		switch(id)
 		{
 			case WEPID_VOMITJAR:
