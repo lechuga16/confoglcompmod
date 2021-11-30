@@ -1,6 +1,7 @@
-#pragma semicolon 1
-#include <sourcemod>
-#include <sdktools>
+#if defined __weapon_information_included
+	#endinput
+#endif
+#define __weapon_information_included
 
 #define DEBUG_WI				0
 //#if (DEBUG_ALL)

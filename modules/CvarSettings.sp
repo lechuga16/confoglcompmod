@@ -1,5 +1,9 @@
-#define CVS_CVAR_MAXLEN 64
+#if defined __cvar_settings_included
+	#endinput
+#endif
+#define __cvar_settings_included
 
+#define CVS_CVAR_MAXLEN 64
 #define CVARS_DEBUG		0
 
 enum CVSEntry

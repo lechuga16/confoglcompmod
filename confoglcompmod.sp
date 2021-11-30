@@ -3,7 +3,7 @@
 #if defined(AUTOVERSION)
 #include "version.inc"
 #else
-#define PLUGIN_VERSION	"2.2.6"
+#define PLUGIN_VERSION	"2.2.6.1"
 #endif
 
 #if !defined(DEBUG_ALL)

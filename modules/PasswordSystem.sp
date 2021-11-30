@@ -1,7 +1,7 @@
-#pragma semicolon 1
-
-#include <sourcemod>
-#include <sdktools>
+#if defined __password_system_included
+	#endinput
+#endif
+#define __password_system_included
 
 new Handle:PS_hPassword;
 new Handle:PS_hReloaded;

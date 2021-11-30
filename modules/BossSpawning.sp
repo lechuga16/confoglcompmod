@@ -1,7 +1,7 @@
-#pragma semicolon 1
-
-#include <sourcemod>
-#include <sdktools>
+#if defined __boss_spawning_included
+	#endinput
+#endif
+#define __boss_spawning_included
 
 #define DEBUG_BS	0
 

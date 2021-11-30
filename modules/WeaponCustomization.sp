@@ -1,7 +1,7 @@
-#pragma semicolon 1
-
-#include <sourcemod>
-#include <sdktools>
+#if defined __weapon_customization_included
+	#endinput
+#endif
+#define __weapon_customization_included
 
 new Handle:WC_hLimitCount;
 

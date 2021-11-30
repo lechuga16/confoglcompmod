@@ -1,6 +1,7 @@
-#include <sourcemod>
-#include <sdktools>
-#include <left4downtown>
+#if defined __unprohibit_bosses_included
+	#endinput
+#endif
+#define __unprohibit_bosses_included
 
 new Handle:UB_hEnable;
 new bool:UB_bEnabled = true;

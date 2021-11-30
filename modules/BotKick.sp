@@ -1,7 +1,7 @@
-#pragma semicolon 1
-
-#include <sourcemod>
-#include <sdktools>
+#if defined __bot_kick_included
+	#endinput
+#endif
+#define __bot_kick_included
 
 static 			BK_iEnable;
 static Handle:	BK_hEnable;

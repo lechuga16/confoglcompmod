@@ -1,5 +1,7 @@
-#pragma semicolon 1
-#include <sourcemod>
+#if defined __confogl_functions_included
+	#endinput
+#endif
+#define __confogl_functions_included
 
 #define CVAR_PREFIX			"confogl_"
 #define CVAR_FLAGS			FCVAR_NONE

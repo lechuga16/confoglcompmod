@@ -1,6 +1,7 @@
-#include <sourcemod>
-#include <sdktools>
-#include <left4downtown>
+#if defined __l4dt_forwards_included
+	#endinput
+#endif
+#define __l4dt_forwards_included
 
 public Action:L4D_OnSpawnTank(const Float:vector[3], const Float:qangle[3])
 {

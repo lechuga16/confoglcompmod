@@ -1,6 +1,7 @@
-#pragma semicolon 1
-#include <sourcemod>
-#include <sdktools>
+#if defined __reg_match_included
+	#endinput
+#endif
+#define __reg_match_included
 
 #define			RM_DEBUG					0
 

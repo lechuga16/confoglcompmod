@@ -1,3 +1,7 @@
+#if defined __confogl_debug_included
+	#endinput
+#endif
+#define __confogl_debug_included
 
 #if DEBUG_ALL
 #define DEBUG_DEFAULT "1"

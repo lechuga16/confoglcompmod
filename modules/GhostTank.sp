@@ -1,5 +1,7 @@
-#include <sourcemod>
-#include <sdktools>
+#if defined __ghost_tank_included
+	#endinput
+#endif
+#define __ghost_tank_included
 
 #define 		ZOMBIECLASS_TANK						8
 

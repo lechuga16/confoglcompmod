@@ -1,8 +1,7 @@
-#pragma semicolon 1
-
-#include <sourcemod>
-#include <sdktools>
-#include <left4downtown>
+#if defined __unreserve_lobby_included
+	#endinput
+#endif
+#define __unreserve_lobby_included
 
 new Handle:UL_hEnable;
 

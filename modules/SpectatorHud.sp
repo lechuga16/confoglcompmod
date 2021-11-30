@@ -1,5 +1,7 @@
-#include <sourcemod>
-#include <sdktools>
+#if defined __spectator_hub_included
+	#endinput
+#endif
+#define __spectator_hub_included
 
 #define SI_SMOKER               1
 #define SI_BOOMER               2

@@ -1,10 +1,7 @@
-
-
-#if defined __CLIENTSETTINGS_MODULE__
-#endinput
+#if defined __client_settings_include
+	#endinput
 #endif
-
-#define __CLIENTSETTINGS_MODULE__
+#define __client_settings_include
 
 #define CLS_CVAR_MAXLEN	64
 

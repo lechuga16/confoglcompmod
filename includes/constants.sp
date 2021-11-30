@@ -1,4 +1,7 @@
-#pragma semicolon 1
+#if defined __confogl_constants_included
+	#endinput
+#endif
+#define __confogl_constants_included
 
 const	START_SAFEROOM			= 1 << 0;
 const	END_SAFEROOM			= 1 << 1;

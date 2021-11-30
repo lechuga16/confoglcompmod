@@ -1,8 +1,7 @@
-#pragma semicolon 1
-
-#include <sourcemod>
-#include <sdktools>
-#include <sdkhooks>
+#if defined __finale_spawn_included
+	#endinput
+#endif
+#define __finale_spawn_included
 
 #define STATE_SPAWNREADY 0
 #define STATE_TOOCLOSE 256

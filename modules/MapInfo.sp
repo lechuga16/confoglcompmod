@@ -1,8 +1,7 @@
-#pragma semicolon 1
-
-#include <sourcemod>
-#include <sdktools>
-#include <left4downtown>
+#if defined __map_info_included
+	#endinput
+#endif
+#define __map_info_included
 
 #define DEBUG_MI					0
 

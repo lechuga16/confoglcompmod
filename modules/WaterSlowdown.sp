@@ -1,7 +1,7 @@
-#pragma semicolon 1
-
-#include <sourcemod>
-#include <sdktools>
+#if defined __water_slowdown_included
+	#endinput
+#endif
+#define __water_slowdown_included
 
 new bool:WS_bEnabled = true;
 new Handle:WS_hEnable;

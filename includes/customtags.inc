@@ -1,9 +1,10 @@
-// COPYRIGHT PSYCHONIC
-// USED WITH PERMISSION
-#if defined _customtags_included
+#if defined __confogl_customtags_included
 	#endinput
 #endif
-#define _customtags_included
+#define __confogl_customtags_included
+
+// COPYRIGHT PSYCHONIC
+// USED WITH PERMISSION
 
 #define CUSTOM_TAGS_VERSION 4
 

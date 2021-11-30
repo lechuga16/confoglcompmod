@@ -1,7 +1,7 @@
-#pragma semicolon 1
-
-#include <sourcemod>
-#include <sdktools>
+#if defined __scoremod_included
+	#endinput
+#endif
+#define __scoremod_included
 
 #define DEBUG_SM	0
 

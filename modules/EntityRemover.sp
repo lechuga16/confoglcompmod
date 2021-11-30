@@ -1,7 +1,7 @@
-#pragma semicolon 1
-
-#include <sourcemod>
-#include <sdktools>
+#if defined __entity_remover_included
+	#endinput
+#endif
+#define __entity_remover_included
 
 #define DEBUG_ER					0
 

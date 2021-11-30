@@ -1,6 +1,7 @@
-#pragma semicolon 1
-#include <sourcemod>
-#include <sdktools>
+#if defined __confogl_survivor_index_included
+	#endinput
+#endif
+#define __confogl_survivor_index_included
 
 new iSurvivorIndex[NUM_OF_SURVIVORS] = 0;
 

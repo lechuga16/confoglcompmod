@@ -1,7 +1,7 @@
-#pragma semicolon 1
-
-#include <sourcemod>
-#include <sdktools>
+#if defined __ghost_warp_included
+	#endinput
+#endif
+#define __ghost_warp_included
 
 new Handle:GW_hGhostWarp;
 new Handle:GW_hGhostWarpReload;

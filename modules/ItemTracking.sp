@@ -1,5 +1,7 @@
-#include <sourcemod>
-#include <sdktools>
+#if defined __item_tracking_included
+	#endinput
+#endif
+#define __item_tracking_included
 
 // Item lists for tracking/decoding/etc
 enum ItemList {
