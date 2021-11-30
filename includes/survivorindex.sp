@@ -3,93 +3,94 @@
 #endif
 #define __confogl_survivor_index_included
 
-new iSurvivorIndex[NUM_OF_SURVIVORS] = 0;
+static int
+	iSurvivorIndex[NUM_OF_SURVIVORS] = {0, ...};
 
-SI_OnModuleStart()
+void SI_OnModuleStart()
 {
-	HookEvent("round_start"			, SI_BuildIndex_Event);
-	HookEvent("round_end"			, SI_BuildIndex_Event);
-	HookEvent("player_spawn"		, SI_BuildIndex_Event);
-	HookEvent("player_disconnect"	, SI_BuildIndex_Event);
-	HookEvent("player_death"		, SI_BuildIndex_Event);
-	HookEvent("player_bot_replace"	, SI_BuildIndex_Event);
-	HookEvent("bot_player_replace"	, SI_BuildIndex_Event);
-	HookEvent("defibrillator_used"	, SI_BuildIndex_Event);
-	HookEvent("player_team"			, SI_BuildIndexDelay_Event);
+	HookEvent("round_start", SI_BuildIndex_Event, EventHookMode_PostNoCopy);
+	HookEvent("round_end", SI_BuildIndex_Event, EventHookMode_PostNoCopy);
+	HookEvent("player_spawn", SI_BuildIndex_Event, EventHookMode_PostNoCopy);
+	HookEvent("player_disconnect", SI_BuildIndex_Event, EventHookMode_PostNoCopy);
+	HookEvent("player_death", SI_BuildIndex_Event, EventHookMode_PostNoCopy);
+	HookEvent("player_bot_replace", SI_BuildIndex_Event, EventHookMode_PostNoCopy);
+	HookEvent("bot_player_replace", SI_BuildIndex_Event, EventHookMode_PostNoCopy);
+	HookEvent("defibrillator_used", SI_BuildIndex_Event, EventHookMode_PostNoCopy);
+	HookEvent("player_team", SI_BuildIndexDelay_Event, EventHookMode_PostNoCopy);
 }
 
-SI_BuildIndex()
+static void SI_BuildIndex()
 {
-	if (!IsServerProcessing() || !IsPluginEnabled()){return;}
-	
-	new ifoundsurvivors = 0;
-	decl character;
-	
+	if (!IsServerProcessing() || !IsPluginEnabled()) {
+		return;
+	}
+
+	int ifoundsurvivors = 0, character = 0;
+
 	// Make sure kicked survivors don't freak us out.
-	for(new i = 0; i < NUM_OF_SURVIVORS;i++)
-		iSurvivorIndex[i]=0;
-	
-	for (new client = 1; client <= MaxClients; client++)
-	{
-		if (ifoundsurvivors == NUM_OF_SURVIVORS)
-		{
+	for (int i = 0; i < NUM_OF_SURVIVORS; i++) {
+		iSurvivorIndex[i] = 0;
+	}
+
+	for (int client = 1; client <= MaxClients; client++) {
+		if (ifoundsurvivors == NUM_OF_SURVIVORS) {
 			break;
 		}
-		
-		if (!IsClientInGame(client) || GetClientTeam(client) != 2)
-		{
+
+		if (!IsClientInGame(client) || GetClientTeam(client) != TEAM_SURVIVOR) {
 			continue;
 		}
-		
-		character = GetEntProp(client,Prop_Send,"m_survivorCharacter");
+
+		character = GetEntProp(client, Prop_Send, "m_survivorCharacter");
 		ifoundsurvivors++;
-		
-		if (character > 3 || character < 0)
-		{
+
+		if (character > 3 || character < 0) {
 			continue;
 		}
-		
+
 		iSurvivorIndex[character] = 0;
-		
-		if (!IsPlayerAlive(client))
-		{
+
+		if (!IsPlayerAlive(client)) {
 			continue;
 		}
-		
+
 		iSurvivorIndex[character] = client;
 	}
 }
 
-public SI_BuildIndexDelay_Event(Handle:event, const String:name[], bool:dontBroadcast)
+public void SI_BuildIndexDelay_Event(Event hEvent, const char[] sEventName, bool bDontBroadcast)
 {
-	CreateTimer(0.3, SI_BuildIndex_Timer);
+	CreateTimer(0.3, SI_BuildIndex_Timer, _, TIMER_FLAG_NO_MAPCHANGE);
 }
 
-public Action:SI_BuildIndex_Timer(Handle:timer)
+public Action SI_BuildIndex_Timer(Handle hTimer)
+{
+	SI_BuildIndex();
+
+	return Plugin_Stop;
+}
+
+public void SI_BuildIndex_Event(Event hEvent, const char[] sEventName, bool bDontBroadcast)
 {
 	SI_BuildIndex();
 }
 
-public SI_BuildIndex_Event(Handle:event, const String:name[], bool:dontBroadcast)
+stock int GetSurvivorIndex(int index)
 {
-	SI_BuildIndex();
-}
-
-GetSurvivorIndex(index)
-{
-	if (index < 0 || index > 3)
-	{
+	if (index < 0 || index > 3) {
 		return 0;
 	}
-	
+
 	return iSurvivorIndex[index];
 }
 
-bool:IsAnySurvivorsAlive()
+stock bool IsAnySurvivorsAlive()
 {
-	for(new index = 0;index < NUM_OF_SURVIVORS; index++)
-	{
-		if (iSurvivorIndex[index]) return true;
+	for (int index = 0; index < NUM_OF_SURVIVORS; index++) {
+		if (iSurvivorIndex[index]) {
+			return true;
+		}
 	}
+
 	return false;
 }
