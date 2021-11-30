@@ -16,8 +16,8 @@ static Float:Start_Extra_Dist;
 static Float:End_Dist;
 
 static iMapMaxDistance;
-static iIsInEditMode[MAXPLAYERS];
-static Float:fLocTemp[MAXPLAYERS][3];
+static iIsInEditMode[MAXPLAYERS + 1];
+static Float:fLocTemp[MAXPLAYERS + 1][3];
 
 public MI_OnModuleStart()
 {
@@ -49,7 +49,9 @@ public MI_OnMapEnd()
 {
 	KvRewind(kMIData);
 	MapDataAvailable = false;
-	for (new i; i < MAXPLAYERS; i++) iIsInEditMode[i] = 0;
+
+	// 0 - server index?
+	for (new i = 0; i <= MaxClients; i++) iIsInEditMode[i] = 0;
 }
 
 public MI_OnModuleEnd()
@@ -60,7 +62,7 @@ public MI_OnModuleEnd()
 public PlayerDisconnect_Event(Handle:event, const String:name[], bool:dontBroadcast)
 {
 	new client = GetClientOfUserId(GetEventInt(event, "userid"));
-	if (client > -1 && client < MAXPLAYERS) iIsInEditMode[client] = 0;
+	if (client > 0 && client <= MaxClients) iIsInEditMode[client] = 0;
 }
 
 public Action:MI_KV_CmdSave(client, args)
@@ -405,7 +407,7 @@ public _native_GetMapValueInt(Handle:plugin, numParams)
 	new String:key[len+1];
 	GetNativeString(1, key, len+1);
 	
-	defval = GetNativeCellRef(2);
+	defval = GetNativeCell(2);
 	
 	return GetMapValueInt(key, defval);
 }
@@ -418,7 +420,7 @@ public _native_GetMapValueFloat(Handle:plugin, numParams)
 	new String:key[len+1];
 	GetNativeString(1, key, len+1);
 	
-	defval = GetNativeCellRef(2);
+	defval = GetNativeCell(2);
 	
 	return _:GetMapValueFloat(key, defval);
 }
