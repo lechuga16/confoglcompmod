@@ -174,8 +174,12 @@ public Action L4D_OnSpawnTank(const float vector[3], const float qangle[3])
 		return Plugin_Handled;
 	}
 
-	BS_OnTankSpawn_Forward();
 	return Plugin_Continue;
+}
+
+public void L4D_OnSpawnTank_Post(int client, const float vecPos[3], const float vecAng[3])
+{
+	BS_OnTankSpawn_Forward(); //BossSpawning
 }
 
 public Action L4D_OnSpawnMob(int &amount)

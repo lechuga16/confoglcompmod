@@ -75,6 +75,7 @@ public void BS_WitchSpawn(Event hEvent, const char[] sEventName, bool bDontBroad
 	if (BS_bDeleteWitches) {
 		// Used to delete round2 extra witches, which spawn on round start instead of by flow
 		KillEntity(iWitch);
+
 		return;
 	}
 
@@ -96,13 +97,11 @@ public void BS_WitchSpawn(Event hEvent, const char[] sEventName, bool bDontBroad
 	}
 }
 
-Action BS_OnTankSpawn_Forward()
+void BS_OnTankSpawnPost_Forward()
 {
 	if (BS_bEnabled && IsPluginEnabled()) {
 		BS_bExpectTankSpawn = true;
 	}
-
-	return Plugin_Continue;
 }
 
 public void BS_TankSpawn(Event hEvent, const char[] sEventName, bool bDontBroadcast)
