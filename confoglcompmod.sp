@@ -3,7 +3,7 @@
 #if defined(AUTOVERSION)
 #include "version.inc"
 #else
-#define PLUGIN_VERSION	"2.2.6.4"
+#define PLUGIN_VERSION	"2.2.6.5"
 #endif
 
 #if !defined(DEBUG_ALL)
@@ -58,10 +58,10 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 public Plugin myinfo = 
 {
 	name = "Confogl's Competitive Mod",
-	author = "Confogl Team",
+	author = "Confogl Team, A1m`",
 	description = "A competitive mod for L4D2",
 	version = PLUGIN_VERSION,
-	url = "http://confogl.googlecode.com/"
+	url = "https://github.com/L4D-Community/confoglcompmod"
 };
 
 public void OnPluginStart()
@@ -226,7 +226,7 @@ public Action L4D_OnFirstSurvivorLeftSafeArea(int client)
 	return Plugin_Continue;
 }
 
-public Action:OFSLA_ForceMobSpawnTimer(Handle hTimer)
+public Action OFSLA_ForceMobSpawnTimer(Handle hTimer)
 {
 	// Workaround to make tank horde blocking always work
 	// Makes the first horde always start 100s after survivors leave saferoom
