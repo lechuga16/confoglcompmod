@@ -3,7 +3,7 @@
 #if defined(AUTOVERSION)
 #include "version.inc"
 #else
-#define PLUGIN_VERSION	"2.2.6.1"
+#define PLUGIN_VERSION	"2.2.6.2"
 #endif
 
 #if !defined(DEBUG_ALL)
@@ -13,7 +13,11 @@
 #include <sourcemod>
 #include <sdktools>
 #include <sdkhooks>
-#include <left4downtown>
+#define LEFT4FRAMEWORK_INCLUDE 1
+#include <left4framework>
+//#undef REQUIRE_PLUGIN
+//#include <l4d2lib> //ItemTracking (commented out)
+
 #include "includes/constants.sp"
 #include "includes/functions.sp"
 #include "includes/debug.sp"
