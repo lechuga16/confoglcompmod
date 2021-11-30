@@ -1,14 +1,7 @@
 #pragma semicolon 1
 
-#if defined(AUTOVERSION)
-#include "version.inc"
-#else
-#define PLUGIN_VERSION	"2.2.7.1"
-#endif
-
-#if !defined(DEBUG_ALL)
 #define DEBUG_ALL		0
-#endif
+#define PLUGIN_VERSION	"2.2.7.1"
 
 #include <sourcemod>
 #include <sdktools>
@@ -46,7 +39,7 @@
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {
-	// Plugin functions
+	//Plugin functions
 	Configs_APL(); //configs
 
 	//Modules
@@ -69,7 +62,7 @@ public Plugin myinfo =
 
 public void OnPluginStart()
 {
-	// Plugin functions
+	//Plugin functions
 	FNS_OnPluginStart(); //functions
 	Debug_OnModuleStart(); //debug
 	Configs_OnModuleStart(); //configs
@@ -160,10 +153,10 @@ public void OnClientPutInServer(int client)
 	RM_OnClientPutInServer(); //ReqMatch
 	UL_OnClientPutInServer(); //UnreserveLobby
 	PS_OnClientPutInServer(client); //PasswordSystem
-	FS_OnOnClientPutInServer(client); // FinaleSpawn
+	FS_OnOnClientPutInServer(client); //FinaleSpawn
 }
 
-// Hot functions =)
+//Hot functions =)
 public void OnGameFrame()
 {
 	//Modules
@@ -181,7 +174,7 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 	return Plugin_Continue;
 }
 
-// Left4Dhooks or Left4Downtown functions
+//Left4Dhooks or Left4Downtown functions
 public Action L4D_OnCThrowActivate(int iAbility)
 {
 	//Modules
@@ -259,8 +252,8 @@ public Action L4D_OnFirstSurvivorLeftSafeArea(int client)
 
 public Action OFSLA_ForceMobSpawnTimer(Handle hTimer)
 {
-	// Workaround to make tank horde blocking always work
-	// Makes the first horde always start 100s after survivors leave saferoom
+	//Workaround to make tank horde blocking always work
+	//Makes the first horde always start 100s after survivors leave saferoom
 	static ConVar hCvarMobSpawnTimeMin = null;
 	static ConVar hCvarMobSpawnTimeMax = null;
 
