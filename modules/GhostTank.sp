@@ -8,7 +8,6 @@
 const 	Float:	THROWRANGE 								= 99999999.0;
 const 	Float:	FIREIMMUNITY_TIME 						= 5.0;
 const 			INCAPHEALTH 							= 300;
-const 	Float:	SPECHUD_UPDATEINTERVAL 					= 0.5;
 
 new 	Handle:	g_hGT_Enabled;
 new 			g_iGT_TankClient;
@@ -21,12 +20,6 @@ new		bool:	g_bGT_FinaleVehicleIncoming;
 
 new		Handle:	g_hGT_BlockPunchRock;
 
-/*new 	Handle:	g_hGT_SpecHUD;
-new 			g_iGT_SpecHUD_LastHealth;
-new		Handle:	g_hGT_SpecHUD_TankHealth;
-new 	bool:	g_bGT_SpecHUD_ShowPanel[MAXPLAYERS+1] 	= true;
-new 	bool:	g_bGT_SpecHUD_ShowHint[MAXPLAYERS+1] 	= true;
-*/
 new passes;
 
 // Disable Tank Hordes items
@@ -35,10 +28,11 @@ static 	bool:	g_bGT_HordesDisabled;
 
 GT_OnModuleStart()
 {
-	g_hGT_Enabled	= CreateConVarEx("boss_tank", "1", "Tank can't be prelight, frozen and ghost until player takes over, punch fix, and no rock throw for AI tank while waiting for player");
+	g_hGT_Enabled = CreateConVarEx("boss_tank", "1", "Tank can't be prelight, frozen and ghost until player takes over, punch fix, and no rock throw for AI tank while waiting for player");
 	g_hGT_RemoveEscapeTank = CreateConVarEx("remove_escape_tank", "1", "Remove tanks that spawn as the rescue vehicle is incoming on finales.");
 	g_hGT_DisableTankHordes = CreateConVarEx("disable_tank_hordes", "0", "Disable natural hordes while tanks are in play");
 	g_hGT_BlockPunchRock = CreateConVarEx("block_punch_rock", "0", "Block tanks from punching and throwing a rock at the same time");
+	
 	HookEvent("tank_spawn", GT_TankSpawn);
 	HookEvent("player_death",GT_TankKilled);
 	HookEvent("player_hurt",GT_TankOnFire);
@@ -46,9 +40,6 @@ GT_OnModuleStart()
 	HookEvent("item_pickup", GT_ItemPickup);
 	HookEvent("player_incapacitated", GT_PlayerIncap);
 	HookEvent("finale_vehicle_incoming", GT_FinaleVehicleIncoming);
-	//RegConsoleCmd("tankhud",GT_SpecHUD_Command,"Toggles Confogl\'s Tank Spectate HUD");
-	//g_hGT_SpecHUD_TankHealth = FindConVar("z_tank_health");
-	//g_iGT_SpecHUD_LastHealth = RoundFloat(GetConVarFloat(g_hGT_SpecHUD_TankHealth)*1.5);
 }
 
 // For other modules to use
@@ -126,7 +117,7 @@ Action:GT_OnSpawnMob_Forward(&amount)
 }
 
 // Disable stasis when we're using GhostTank
-Action:GT_OnTryOfferingTankBot(& bool:enterStasis)
+Action:GT_OnTryOfferingTankBot(&bool:enterStasis)
 {
 	passes++;
 	if(IsPluginEnabled())
@@ -205,10 +196,6 @@ public GT_TankSpawn(Handle:event, const String:name[], bool:dontBroadcast)
 	}
 
 	if(!IsPluginEnabled() || !GetConVarBool(g_hGT_Enabled)) return;
-
-
-	// Spec HUD
-	//CreateTimer(SPECHUD_UPDATEINTERVAL, GT_SpecHUD_Timer, INVALID_HANDLE, TIMER_REPEAT);
 
 	new Float:fFireImmunityTime = FIREIMMUNITY_TIME;
 	new Float:fSelectionTime = GetConVarFloat(FindConVar("director_tank_lottery_selection_time"));
@@ -299,171 +286,12 @@ GT_Reset()
 	}
 	g_bGT_TankIsInPlay = false;
 	g_bGT_TankHasFireImmunity = true;
-	//g_iGT_SpecHUD_LastHealth = RoundFloat(GetConVarFloat(g_hGT_SpecHUD_TankHealth)*1.5);
 }
 
 public Action:GT_TankKilled_Timer(Handle:timer)
 {
 	GT_Reset();
 }
-
-
-// //////////////////////////////////////////////
-// Spec Hud
-// //////////////////////////////////////////////
-/*public Action:GT_SpecHUD_Timer(Handle:timer)
-{
-	GT_SpecHUD_Draw();
-	GT_SpecHUD_Update();
-
-	if(!g_bGT_TankIsInPlay)
-	{
-		GT_SpecHUD_ResetHint();
-		return Plugin_Stop;
-	}
-
-	return Plugin_Continue;
-}
-
-public Action:GT_SpecHUD_Command(client,args)
-{
-	g_bGT_SpecHUD_ShowPanel[client] = !g_bGT_SpecHUD_ShowPanel[client];
-	if(g_bGT_SpecHUD_ShowPanel[client])
-	{
-		PrintToChat(client,"\x01[\x05Confogl\x01] Tank HUD is now enabled.");
-	}
-	else
-	{
-		PrintToChat(client,"\x01[\x05Confogl\x01] Tank HUD is now disabled.");
-	}
-}
-
-GT_OnClientDisconnect(client)
-{
-	g_bGT_SpecHUD_ShowPanel[client] = true;
-	g_bGT_SpecHUD_ShowHint[client] = true;
-}
-
-GT_SpecHUD_ResetHint()
-{
-	for(new client = 1;client <= MaxClients;client++)
-	{
-		g_bGT_SpecHUD_ShowHint[client] = true;
-	}
-}
-
-GT_SpecHUD_Update()
-{
-	decl team;
-	for(new client = 1;client <= MaxClients;client++)
-	{
-		
-		if(!IsValidClient(client)) continue;
-		team = GetClientTeam(client);
-		if(team == 2 || IsFakeClient(client) || !g_bGT_SpecHUD_ShowPanel[client] 
-			|| client == g_iGT_TankClient) 
-			//|| (team == 1 && IsClientUsingSpecHud(client)) || client == g_iGT_TankClient) 
-		continue; 
-		
-		SendPanelToClient(g_hGT_SpecHUD, client, GT_SpecHUD_MenuHandler, 3);
-		
-		if(g_bGT_SpecHUD_ShowHint[client])
-		{
-			g_bGT_SpecHUD_ShowHint[client] = false;
-			PrintToChat(client,"\x01[\x05Confogl\x01] Say \x05/tankhud \x01to toggle the tank HUD.");
-		}
-	}
-}
-
-GT_SpecHUD_Draw()
-{
-	if(!g_bGT_TankIsInPlay)
-	{
-		return;
-	}
-
-	if(g_hGT_SpecHUD != INVALID_HANDLE)
-	{
-		CloseHandle(g_hGT_SpecHUD);
-	}
-
-	g_hGT_SpecHUD = CreatePanel();
-
-	decl String:sTempString[512], String:sNameString[MAX_NAME_LENGTH+1];
-
-	decl String:sCFGName[512];
-	GetConVarString(FindConVar("l4d_ready_cfg_name"), sCFGName, sizeof(sCFGName));
-
-	DrawPanelText(g_hGT_SpecHUD, sCFGName);
-	DrawPanelText(g_hGT_SpecHUD, "Tank Spec HUD");
-	DrawPanelText(g_hGT_SpecHUD, "-------------------------------");
-
-	// Draw name
-	if(IsValidClient(g_iGT_TankClient) && !IsFakeClient(g_iGT_TankClient))
-	{
-		GetClientName(g_iGT_TankClient,sNameString,sizeof(sNameString));
-		
-		if(strlen(sNameString) > 25)
-		{
-			sNameString[22] = '.';
-			sNameString[23] = '.';
-			sNameString[24] = '.';
-			sNameString[25] = 0;
-		}
-		
-		Format(sTempString, sizeof(sTempString), "  Control : %s (Pass #%i)", sNameString, passes);
-	}
-	else
-	{
-		Format(sTempString, sizeof(sTempString), "  Control : AI");
-	}
-	DrawPanelText(g_hGT_SpecHUD, sTempString);
-
-	// Draw health
-	new health = 0;
-	if(IsValidClient(g_iGT_TankClient))
-		health = GetClientHealth(g_iGT_TankClient);
-
-	if(g_iGT_SpecHUD_LastHealth < health)
-	{
-		sTempString = "  Health  : Dead";
-	}
-	else
-	{
-		new healthpro = RoundFloat((100.0/(GetConVarFloat(g_hGT_SpecHUD_TankHealth)*1.5)) * health);
-		if(healthpro < 1)
-		{
-			healthpro = 1;
-		}
-		Format(sTempString, sizeof(sTempString), "  Health  : %i / %i%%", health, healthpro);
-		g_iGT_SpecHUD_LastHealth = health;
-	}
-	DrawPanelText(g_hGT_SpecHUD, sTempString);
-
-	// Draw frustration
-	if(IsValidClient(g_iGT_TankClient) && !IsFakeClient(g_iGT_TankClient))
-	{
-		Format(sTempString, sizeof(sTempString), "  Rage : %d%%", 100-GetEntProp(g_iGT_TankClient, Prop_Send, "m_frustration"));
-	}
-	else
-	{
-		sTempString = "  Frustr.  : Calm";
-	}
-	DrawPanelText(g_hGT_SpecHUD, sTempString);
-
-	// Draw fire status
-	if(IsValidClient(g_iGT_TankClient) && GetEntityFlags(g_iGT_TankClient) & FL_ONFIRE)
-	{
-		new timeleft = RoundToCeil(health / 80.0);
-		Format(sTempString, sizeof(sTempString), "  OnFire. : Yes, %i sec",timeleft);
-		DrawPanelText(g_hGT_SpecHUD, sTempString);
-	}
-}
-
-public GT_SpecHUD_MenuHandler(Handle:menu, MenuAction:action, param1, param2)
-{
-}
-*/
 
 bool:IsValidClient(client)
 {

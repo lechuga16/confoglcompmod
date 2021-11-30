@@ -3,7 +3,7 @@
 #if defined(AUTOVERSION)
 #include "version.inc"
 #else
-#define PLUGIN_VERSION	"2.2.6.5"
+#define PLUGIN_VERSION	"2.2.6.6"
 #endif
 
 #if !defined(DEBUG_ALL)
@@ -43,7 +43,6 @@
 #include "modules/WeaponCustomization.sp"
 #include "modules/ClientSettings.sp"
 #include "modules/ItemTracking.sp"
-//#include "modules/SpectatorHud.sp"
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {
@@ -92,7 +91,6 @@ public void OnPluginStart()
 	WC_OnModuleStart();
 	CLS_OnModuleStart();
 	IT_OnModuleStart();
-	//SH_OnModuleStart();
 	
 	AddCustomServerTag("confogl", true);
 }
@@ -140,8 +138,6 @@ public void OnConfigsExecuted()
 public void OnClientDisconnect(int client)
 {
 	RM_OnClientDisconnect(client);
-	//GT_OnClientDisconnect(client);
-	//SH_OnClientDisconnect(client);
 }
 
 public void OnClientPutInServer(int client)
