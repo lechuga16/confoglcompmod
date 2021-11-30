@@ -4,26 +4,31 @@
 #define __confogl_debug_included
 
 #if DEBUG_ALL
-#define DEBUG_DEFAULT "1"
+	#define DEBUG_DEFAULT "1"
 #else
-#define DEBUG_DEFAULT "0"
+	#define DEBUG_DEFAULT "0"
 #endif
 
-new bool:debug_confogl;
+static ConVar
+	g_hDebugConVar = null;
 
-public Debug_OnModuleStart()
+static bool
+	g_bConfoglDebug = false;
+
+void Debug_OnModuleStart()
 {
-	new Handle:hDebugConVar = CreateConVarEx("debug", DEBUG_DEFAULT, "Turn on Debug Logging in all Confogl Modules");
-	HookConVarChange(hDebugConVar, Debug_ConVarChange);
-	debug_confogl = GetConVarBool(hDebugConVar);
+	g_hDebugConVar = CreateConVarEx("debug", DEBUG_DEFAULT, "Turn on Debug Logging in all Confogl Modules", _, true, 0.0, true, 1.0);
+
+	g_bConfoglDebug = g_hDebugConVar.BoolValue;
+	g_hDebugConVar.AddChangeHook(Debug_ConVarChange);
 }
 
-public Debug_ConVarChange(Handle:convar, const String:oldValue[], const String:newValue[])
+public void Debug_ConVarChange(ConVar hConvar, const char[] sOldValue[], const char[] sNewValue)
 {
-	debug_confogl = bool:StringToInt(newValue);
+	g_bConfoglDebug = view_as<bool>(StringToInt(sNewValue));
 }
 
-stock bool:IsDebugEnabled()
+stock bool IsDebugEnabled()
 {
-	return debug_confogl || DEBUG_ALL;
+	return (g_bConfoglDebug || DEBUG_ALL);
 }
