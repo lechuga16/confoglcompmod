@@ -6,117 +6,117 @@
 // COPYRIGHT PSYCHONIC
 // USED WITH PERMISSION
 
-#define CUSTOM_TAGS_VERSION 4
-
 #define SV_TAG_SIZE 64
 
-static Handle:sv_tags;
-static Handle:custom_tags;
-static bool:are_tags_hooked = false;
-static bool:ignore_next_change = false;
-static EngineVersion:engine_version = Engine_Unknown;
+static stock EngineVersion
+	engine_version = Engine_Unknown;
 
-stock AddCustomServerTag(const String:tag[], bool:force=false)
+static stock bool
+	are_tags_hooked = false,
+	ignore_next_change = false;
+
+static stock ConVar
+	sv_tags = null;
+
+static stock ArrayList
+	custom_tags = null;
+
+stock void AddCustomServerTag(const char[] tag, bool force = false)
 {
-	if (sv_tags == INVALID_HANDLE && (sv_tags = FindConVar("sv_tags")) == INVALID_HANDLE)
-	{
+	if (sv_tags == null && (sv_tags = FindConVar("sv_tags")) == null) {
 		// game doesn't support sv_tags
 		return;
 	}
-	
+
 	if (!force
 		&& (engine_version != Engine_Unknown || (engine_version = GetEngineVersion()) != Engine_Unknown)
-		&& engine_version >= Engine_Left4Dead2)
-	{
+		&& engine_version >= Engine_Left4Dead2
+	) {
 		return;
 	}
-	
-	if (custom_tags == INVALID_HANDLE)
-	{
-		custom_tags = CreateArray(SV_TAG_SIZE);
-		PushArrayString(custom_tags, tag);
+
+	if (custom_tags == null) {
+		custom_tags = new ArrayList(SV_TAG_SIZE);
+		custom_tags.PushString(tag);
+	} else if (custom_tags.FindString(tag) == -1) {
+		custom_tags.PushString(tag);
 	}
-	else if (FindStringInArray(custom_tags, tag) == -1)
-	{
-		PushArrayString(custom_tags, tag);
-	}
-	
-	decl String:current_tags[SV_TAG_SIZE];
-	GetConVarString(sv_tags, current_tags, sizeof(current_tags));
-	if (StrContains(current_tags, tag) > -1)
-	{
+
+	char current_tags[SV_TAG_SIZE];
+	sv_tags.GetString(current_tags, sizeof(current_tags));
+
+	if (StrContains(current_tags, tag) > -1) {
 		// already have tag
 		return;
 	}
-	
-	decl String:new_tags[SV_TAG_SIZE];
-	Format(new_tags, sizeof(new_tags), "%s%s%s", current_tags, (current_tags[0]!=0)?",":"", tag);
-	
-	new flags = GetConVarFlags(sv_tags);
-	SetConVarFlags(sv_tags, flags & ~FCVAR_NOTIFY);
+
+	char new_tags[SV_TAG_SIZE];
+	Format(new_tags, sizeof(new_tags), "%s%s%s", current_tags, (current_tags[0] != 0) ? "," : "", tag);
+
+	int flags = sv_tags.Flags;
+	sv_tags.Flags = flags & ~FCVAR_NOTIFY;
+
 	ignore_next_change = true;
-	SetConVarString(sv_tags, new_tags);
+	sv_tags.SetString(new_tags);
 	ignore_next_change = false;
-	SetConVarFlags(sv_tags, flags);
-	
-	if (!are_tags_hooked)
-	{
-		HookConVarChange(sv_tags, OnTagsChanged);
+
+	sv_tags.Flags = flags;
+
+	if (!are_tags_hooked) {
+		sv_tags.AddChangeHook(OnTagsChanged);
 		are_tags_hooked = true;
 	}
 }
 
-stock RemoveCustomServerTag(const String:tag[])
+stock void RemoveCustomServerTag(const char[] tag)
 {
-	if (sv_tags == INVALID_HANDLE && (sv_tags = FindConVar("sv_tags")) == INVALID_HANDLE)
-	{
+	if (sv_tags == null && (sv_tags = FindConVar("sv_tags")) == null) {
 		// game doesn't support sv_tags
 		return;
 	}
-	
+
 	// we wouldn't have to check this if people aren't removing before adding, but... you know...
-	if (custom_tags != INVALID_HANDLE)
-	{
-		new idx = FindStringInArray(custom_tags, tag);
-		if (idx > -1)
-		{
-			RemoveFromArray(custom_tags, idx);
+	if (custom_tags != null) {
+		int idx = custom_tags.FindString(tag);
+		if (idx > -1) {
+			custom_tags.Erase(idx);
 		}
 	}
-	
-	decl String:current_tags[SV_TAG_SIZE];
-	GetConVarString(sv_tags, current_tags, sizeof(current_tags));
-	if (StrContains(current_tags, tag) == -1)
-	{
+
+	char current_tags[SV_TAG_SIZE];
+	sv_tags.GetString(current_tags, sizeof(current_tags));
+
+	if (StrContains(current_tags, tag) == -1) {
 		// tag isn't on here, just bug out
 		return;
 	}
-	
+
 	ReplaceString(current_tags, sizeof(current_tags), tag, "");
 	ReplaceString(current_tags, sizeof(current_tags), ",,", "");
-	
-	new flags = GetConVarFlags(sv_tags);
-	SetConVarFlags(sv_tags, flags & ~FCVAR_NOTIFY);
+
+	int flags = sv_tags.Flags;
+	sv_tags.Flags = flags & ~FCVAR_NOTIFY;
+
 	ignore_next_change = true;
-	SetConVarString(sv_tags, current_tags);
+	sv_tags.SetString(current_tags);
 	ignore_next_change = false;
-	SetConVarFlags(sv_tags, flags);
+
+	sv_tags.Flags = flags;
 }
 
-public OnTagsChanged(Handle:convar, const String:oldValue[], const String:newValue[])
+public void OnTagsChanged(ConVar hConvar, const char[] sOldValue, const char[] sNewValue)
 {
-	if (ignore_next_change)
-	{
+	if (ignore_next_change) {
 		// we fired this callback, no need to reapply tags
 		return;
 	}
-	
+
 	// reapply each custom tag
-	new cnt = GetArraySize(custom_tags);
-	for (new i = 0; i < cnt; i++)
-	{
-		decl String:tag[SV_TAG_SIZE];
-		GetArrayString(custom_tags, i, tag, sizeof(tag));
+	char tag[SV_TAG_SIZE];
+	int iSize = custom_tags.Length;
+
+	for (int i = 0; i < iSize; i++) {
+		custom_tags.GetString(i, tag, sizeof(tag));
 		AddCustomServerTag(tag);
 	}
 }
