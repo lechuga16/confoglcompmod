@@ -45,16 +45,26 @@
 #include "modules/ItemTracking.sp"
 //#include "modules/SpectatorHud.sp"
 
-public Plugin:myinfo = 
+public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
+{
+	RM_APL();
+	Configs_APL();
+	MI_APL();
+
+	RegPluginLibrary("confogl");
+	return APLRes_Success;
+}
+
+public Plugin myinfo = 
 {
 	name = "Confogl's Competitive Mod",
 	author = "Confogl Team",
 	description = "A competitive mod for L4D2",
 	version = PLUGIN_VERSION,
 	url = "http://confogl.googlecode.com/"
-}
+};
 
-public OnPluginStart()
+public void OnPluginStart()
 {
 	Debug_OnModuleStart();
 	Configs_OnModuleStart();
@@ -87,15 +97,7 @@ public OnPluginStart()
 	AddCustomServerTag("confogl", true);
 }
 
-public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
-{
-	RM_APL();
-	Configs_APL();
-	MI_APL();
-	RegPluginLibrary("confogl");
-}
-
-public OnPluginEnd()
+public void OnPluginEnd()
 {
 	CVS_OnModuleEnd();
 	PS_OnModuleEnd();
@@ -106,12 +108,12 @@ public OnPluginEnd()
 	RemoveCustomServerTag("confogl");
 }
 
-public OnGameFrame()
+public void OnGameFrame()
 {
 	WS_OnGameFrame();
 }
 
-public OnMapStart()
+public void OnMapStart()
 {
 	MI_OnMapStart();
 	RM_OnMapStart();
@@ -121,7 +123,7 @@ public OnMapStart()
 	IT_OnMapStart();
 }
 
-public OnMapEnd()
+public void OnMapEnd()
 {
 	MI_OnMapEnd();
 	WI_OnMapEnd();
@@ -130,36 +132,36 @@ public OnMapEnd()
 	WS_OnMapEnd();
 }
 
-public OnConfigsExecuted()
+public void OnConfigsExecuted()
 {
 	CVS_OnConfigsExecuted();
 }
 
-public OnClientDisconnect(client)
+public void OnClientDisconnect(int client)
 {
 	RM_OnClientDisconnect(client);
 	//GT_OnClientDisconnect(client);
 	//SH_OnClientDisconnect(client);
 }
 
-public OnClientPutInServer(client)
+public void OnClientPutInServer(int client)
 {
 	RM_OnClientPutInServer();
 	UL_OnClientPutInServer();
 	PS_OnClientPutInServer(client);
 }
 
-public Action:OnPlayerRunCmd(client, &buttons, &impulse, Float:vel[3], Float:angles[3], &weapon)
+public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3], float angles[3], int &weapon, \
+									int &subtype, int &cmdnum, int &tickcount, int &seed, int mouse[2])
 {
-	if(GW_OnPlayerRunCmd(client, buttons))
-	{
+	if (GW_OnPlayerRunCmd(client, buttons)) {
 		return Plugin_Handled;
 	}
 
 	return Plugin_Continue;
 }
 
-public Action:L4D_OnCThrowActivate(iAbility)
+public Action L4D_OnCThrowActivate(int iAbility)
 {
 	//Modules
 	if (GT_OnCThrowActivate() == Plugin_Handled) {//GhostTank
@@ -169,67 +171,73 @@ public Action:L4D_OnCThrowActivate(iAbility)
 	return Plugin_Continue;
 }
 
-public Action:L4D_OnSpawnTank(const Float:vector[3], const Float:qangle[3])
+public Action L4D_OnSpawnTank(const float vector[3], const float qangle[3])
 {
-	if(GT_OnTankSpawn_Forward() == Plugin_Handled)
+	if (GT_OnTankSpawn_Forward() == Plugin_Handled) {
 		return Plugin_Handled;
+	}
 
 	BS_OnTankSpawn_Forward();
 	return Plugin_Continue;
 }
 
-public Action:L4D_OnSpawnMob(&amount)
+public Action L4D_OnSpawnMob(int &amount)
 {
-	if(GT_OnSpawnMob_Forward(amount) == Plugin_Handled)
-		return Plugin_Handled;
-
-	return Plugin_Continue;
-}
-
-public Action:L4D_OnTryOfferingTankBot(tank_index, &bool:enterStasis)
-{
-	if(GT_OnTryOfferingTankBot(enterStasis) == Plugin_Handled)
-		return Plugin_Handled;
-
-	return Plugin_Continue;
-}
-
-public Action:L4D_OnGetMissionVSBossSpawning(&Float:spawn_pos_min, &Float:spawn_pos_max, &Float:tank_chance, &Float:witch_chance)
-{
-	if (UB_OnGetMissionVSBossSpawning() == Plugin_Handled)
-		return Plugin_Handled;
-
-	return Plugin_Continue;
-}
-
-public Action:L4D_OnGetScriptValueInt(const String:key[], &retVal)
-{
-	if (UB_OnGetScriptValueInt(key, retVal) == Plugin_Handled)
-	{
+	if (GT_OnSpawnMob_Forward(amount) == Plugin_Handled) {
 		return Plugin_Handled;
 	}
 
 	return Plugin_Continue;
 }
 
-public Action:L4D_OnFirstSurvivorLeftSafeArea(client)
+public Action L4D_OnTryOfferingTankBot(int tank_index, bool &enterStasis)
 {
-	if(IsPluginEnabled())
-	{
+	if (GT_OnTryOfferingTankBot(enterStasis) == Plugin_Handled) {
+		return Plugin_Handled;
+	}
+
+	return Plugin_Continue;
+}
+
+public Action L4D_OnGetMissionVSBossSpawning(float &spawn_pos_min, float &spawn_pos_max, float &tank_chance, float &witch_chance)
+{
+	if (UB_OnGetMissionVSBossSpawning() == Plugin_Handled) {
+		return Plugin_Handled;
+	}
+
+	return Plugin_Continue;
+}
+
+public Action L4D_OnGetScriptValueInt(const char[] key, int &retVal)
+{
+	if (UB_OnGetScriptValueInt(key, retVal) == Plugin_Handled) {
+		return Plugin_Handled;
+	}
+
+	return Plugin_Continue;
+}
+
+public Action L4D_OnFirstSurvivorLeftSafeArea(int client)
+{
+	if (IsPluginEnabled()) {
 		CreateTimer(0.1, OFSLA_ForceMobSpawnTimer);
 	}
+
 	return Plugin_Continue;
 }
 
-public Action:OFSLA_ForceMobSpawnTimer(Handle:timer)
+public Action:OFSLA_ForceMobSpawnTimer(Handle hTimer)
 {
 	// Workaround to make tank horde blocking always work
 	// Makes the first horde always start 100s after survivors leave saferoom
-	static Handle:MobSpawnTimeMin, Handle:MobSpawnTimeMax;
-	if(MobSpawnTimeMin == INVALID_HANDLE)
-	{
+	static ConVar MobSpawnTimeMin = null;
+	static ConVar MobSpawnTimeMax = null;
+
+	if (MobSpawnTimeMin == null) {
 		MobSpawnTimeMin = FindConVar("z_mob_spawn_min_interval_normal");
 		MobSpawnTimeMax = FindConVar("z_mob_spawn_max_interval_normal");
 	}
+
 	L4D2_CTimerStart(L4D2CT_MobSpawnTimer, GetRandomFloat(GetConVarFloat(MobSpawnTimeMin), GetConVarFloat(MobSpawnTimeMax)));
+	return Plugin_Stop;
 }
