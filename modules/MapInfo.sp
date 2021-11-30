@@ -53,7 +53,7 @@ public MI_OnMapEnd()
 	for (new i = 0; i <= MaxClients; i++) iIsInEditMode[i] = 0;
 }
 
-public MI_OnModuleEnd()
+void MI_OnModuleEnd()
 {
 	MI_KV_Close();
 }

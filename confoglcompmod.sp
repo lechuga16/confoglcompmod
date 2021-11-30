@@ -3,7 +3,7 @@
 #if defined(AUTOVERSION)
 #include "version.inc"
 #else
-#define PLUGIN_VERSION	"2.2.7"
+#define PLUGIN_VERSION	"2.2.7.1"
 #endif
 
 #if !defined(DEBUG_ALL)
@@ -46,15 +46,19 @@
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {
-	RM_APL();
-	Configs_APL();
-	MI_APL();
+	// Plugin functions
+	Configs_APL(); //configs
 
+	//Modules
+	RM_APL(); //ReqMatch
+	MI_APL(); //MapInfo
+
+	//Other
 	RegPluginLibrary("confogl");
 	return APLRes_Success;
 }
 
-public Plugin myinfo = 
+public Plugin myinfo =
 {
 	name = "Confogl's Competitive Mod",
 	author = "Confogl Team, A1m`",
@@ -65,81 +69,79 @@ public Plugin myinfo =
 
 public void OnPluginStart()
 {
-	FNS_OnPluginStart();
-	Debug_OnModuleStart();
-	Configs_OnModuleStart();
+	// Plugin functions
+	FNS_OnPluginStart(); //functions
+	Debug_OnModuleStart(); //debug
+	Configs_OnModuleStart(); //configs
+	SI_OnModuleStart(); //survivorindex
 
-	MI_OnModuleStart();
-	SI_OnModuleStart();
-	WI_OnModuleStart();
-	
-	RM_OnModuleStart();
-	
-	CVS_OnModuleStart();
-	PS_OnModuleStart();
-	UL_OnModuleStart();
-	
-	ER_OnModuleStart();
-	GW_OnModuleStart();
-	WS_OnModuleStart();
-	GT_OnModuleStart();
-	UB_OnModuleStart();
-	
-	BK_OnModuleStart();
-	
-	SM_OnModuleStart();
-	FS_OnModuleStart();
-	BS_OnModuleStart();
-	WC_OnModuleStart();
-	CLS_OnModuleStart();
-	IT_OnModuleStart();
-	
+	//Modules
+	MI_OnModuleStart(); //MapInfo
+	WI_OnModuleStart(); //WeaponInformation
+	RM_OnModuleStart(); //ReqMatch
+	CVS_OnModuleStart(); //CvarSettings
+	PS_OnModuleStart(); //PasswordSystem
+	UL_OnModuleStart(); //UnreserveLobby
+	ER_OnModuleStart(); //EntityRemover
+	GW_OnModuleStart(); //GhostWarp
+	WS_OnModuleStart(); //WaterSlowdown
+	GT_OnModuleStart(); //GhostTank
+	UB_OnModuleStart(); //UnprohibitBosses
+	BK_OnModuleStart(); //BotKick
+	SM_OnModuleStart(); //ScoreMod
+	FS_OnModuleStart(); //FinaleSpawn
+	BS_OnModuleStart(); //BossSpawning
+	WC_OnModuleStart(); //WeaponCustomization
+	CLS_OnModuleStart(); //ClientSettings
+	IT_OnModuleStart(); //ItemTracking
+
+	//Other
 	AddCustomServerTag("confogl", true);
 }
 
 public void OnPluginEnd()
 {
-	CVS_OnModuleEnd();
-	PS_OnModuleEnd();
-	ER_OnModuleEnd();
-	SM_OnModuleEnd();
-	
-	WS_OnModuleEnd();
-	RemoveCustomServerTag("confogl");
-}
+	//Modules
+	CVS_OnModuleEnd(); //CvarSettings
+	PS_OnModuleEnd(); //PasswordSystem
+	ER_OnModuleEnd(); //EntityRemover
+	SM_OnModuleEnd(); //ScoreMod
+	WS_OnModuleEnd(); //WaterSlowdown
+	MI_OnModuleEnd(); //MapInfo
 
-public void OnGameFrame()
-{
-	WS_OnGameFrame();
+	//Other
+	RemoveCustomServerTag("confogl");
 }
 
 public void OnMapStart()
 {
-	MI_OnMapStart();
-	RM_OnMapStart();
-	
-	SM_OnMapStart();
-	BS_OnMapStart();
-	IT_OnMapStart();
+	//Modules
+	MI_OnMapStart(); //MapInfo
+	RM_OnMapStart(); //ReqMatch
+	SM_OnMapStart(); //ScoreMod
+	BS_OnMapStart(); //BossSpawning
+	IT_OnMapStart(); //ItemTracking
 }
 
 public void OnMapEnd()
 {
-	MI_OnMapEnd();
-	WI_OnMapEnd();
-	
-	PS_OnMapEnd();
-	WS_OnMapEnd();
+	//Modules
+	MI_OnMapEnd(); //MapInfo
+	WI_OnMapEnd(); //WeaponInformation
+	PS_OnMapEnd(); //PasswordSystem
+	WS_OnMapEnd(); //WaterSlowdown
 }
 
 public void OnConfigsExecuted()
 {
-	CVS_OnConfigsExecuted();
+	//Modules
+	CVS_OnConfigsExecuted(); //CvarSettings
 }
 
 public void OnClientDisconnect(int client)
 {
-	RM_OnClientDisconnect(client);
+	//Modules
+	RM_OnClientDisconnect(client); //ReqMatch
 }
 
 public bool OnClientConnect(int client, char[] rejectmsg, int maxlen)
@@ -154,27 +156,36 @@ public bool OnClientConnect(int client, char[] rejectmsg, int maxlen)
 
 public void OnClientPutInServer(int client)
 {
-	RM_OnClientPutInServer();
-	UL_OnClientPutInServer();
-	PS_OnClientPutInServer(client);
-	FS_OnOnClientPutInServer(client);
+	//Modules
+	RM_OnClientPutInServer(); //ReqMatch
+	UL_OnClientPutInServer(); //UnreserveLobby
+	PS_OnClientPutInServer(client); //PasswordSystem
+	FS_OnOnClientPutInServer(client); // FinaleSpawn
+}
+
+// Hot functions =)
+public void OnGameFrame()
+{
+	//Modules
+	WS_OnGameFrame(); //WaterSlowdown
 }
 
 public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3], float angles[3], int &weapon, \
 									int &subtype, int &cmdnum, int &tickcount, int &seed, int mouse[2])
 {
-	if (GW_OnPlayerRunCmd(client, buttons)) {
+	//Modules
+	if (GW_OnPlayerRunCmd(client, buttons)) { //GhostWarp
 		return Plugin_Handled;
 	}
 
 	return Plugin_Continue;
 }
 
-// left4dhooks or left4downtown functions
+// Left4Dhooks or Left4Downtown functions
 public Action L4D_OnCThrowActivate(int iAbility)
 {
 	//Modules
-	if (GT_OnCThrowActivate() == Plugin_Handled) {//GhostTank
+	if (GT_OnCThrowActivate() == Plugin_Handled) { //GhostTank
 		return Plugin_Handled;
 	}
 
@@ -183,7 +194,8 @@ public Action L4D_OnCThrowActivate(int iAbility)
 
 public Action L4D_OnSpawnTank(const float vector[3], const float qangle[3])
 {
-	if (GT_OnTankSpawn_Forward() == Plugin_Handled) {
+	//Modules
+	if (GT_OnTankSpawn_Forward() == Plugin_Handled) { //GhostTank
 		return Plugin_Handled;
 	}
 
@@ -192,12 +204,14 @@ public Action L4D_OnSpawnTank(const float vector[3], const float qangle[3])
 
 public void L4D_OnSpawnTank_Post(int client, const float vecPos[3], const float vecAng[3])
 {
+	//Modules
 	BS_OnTankSpawn_Forward(); //BossSpawning
 }
 
 public Action L4D_OnSpawnMob(int &amount)
 {
-	if (GT_OnSpawnMob_Forward(amount) == Plugin_Handled) {
+	//Modules
+	if (GT_OnSpawnMob_Forward(amount) == Plugin_Handled) { //GhostTank
 		return Plugin_Handled;
 	}
 
@@ -206,7 +220,8 @@ public Action L4D_OnSpawnMob(int &amount)
 
 public Action L4D_OnTryOfferingTankBot(int tank_index, bool &enterStasis)
 {
-	if (GT_OnTryOfferingTankBot(enterStasis) == Plugin_Handled) {
+	//Modules
+	if (GT_OnTryOfferingTankBot(enterStasis) == Plugin_Handled) { //GhostTank
 		return Plugin_Handled;
 	}
 
@@ -215,7 +230,8 @@ public Action L4D_OnTryOfferingTankBot(int tank_index, bool &enterStasis)
 
 public Action L4D_OnGetMissionVSBossSpawning(float &spawn_pos_min, float &spawn_pos_max, float &tank_chance, float &witch_chance)
 {
-	if (UB_OnGetMissionVSBossSpawning() == Plugin_Handled) {
+	//Modules
+	if (UB_OnGetMissionVSBossSpawning() == Plugin_Handled) { //UnprohibitBosses
 		return Plugin_Handled;
 	}
 
@@ -224,7 +240,8 @@ public Action L4D_OnGetMissionVSBossSpawning(float &spawn_pos_min, float &spawn_
 
 public Action L4D_OnGetScriptValueInt(const char[] key, int &retVal)
 {
-	if (UB_OnGetScriptValueInt(key, retVal) == Plugin_Handled) {
+	//Modules
+	if (UB_OnGetScriptValueInt(key, retVal) == Plugin_Handled) { //UnprohibitBosses
 		return Plugin_Handled;
 	}
 
@@ -244,14 +261,16 @@ public Action OFSLA_ForceMobSpawnTimer(Handle hTimer)
 {
 	// Workaround to make tank horde blocking always work
 	// Makes the first horde always start 100s after survivors leave saferoom
-	static ConVar MobSpawnTimeMin = null;
-	static ConVar MobSpawnTimeMax = null;
+	static ConVar hCvarMobSpawnTimeMin = null;
+	static ConVar hCvarMobSpawnTimeMax = null;
 
-	if (MobSpawnTimeMin == null) {
-		MobSpawnTimeMin = FindConVar("z_mob_spawn_min_interval_normal");
-		MobSpawnTimeMax = FindConVar("z_mob_spawn_max_interval_normal");
+	if (hCvarMobSpawnTimeMin == null) {
+		hCvarMobSpawnTimeMin = FindConVar("z_mob_spawn_min_interval_normal");
+		hCvarMobSpawnTimeMax = FindConVar("z_mob_spawn_max_interval_normal");
 	}
 
-	L4D2_CTimerStart(L4D2CT_MobSpawnTimer, GetRandomFloat(GetConVarFloat(MobSpawnTimeMin), GetConVarFloat(MobSpawnTimeMax)));
+	float fRand = GetRandomFloat(hCvarMobSpawnTimeMin.FloatValue, hCvarMobSpawnTimeMax.FloatValue);
+	L4D2_CTimerStart(L4D2CT_MobSpawnTimer, fRand);
+
 	return Plugin_Stop;
 }
