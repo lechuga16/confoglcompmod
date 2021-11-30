@@ -16,7 +16,8 @@ static ConVar
 
 void PS_OnModuleStart()
 {
-	PS_hPassword = CreateConVarEx("password", \
+	PS_hPassword = CreateConVarEx( \
+		"password", \
 		"", \
 		"Set a password on the server, if empty password disabled. See Confogl's wiki for more information", \
 		FCVAR_DONTRECORD|FCVAR_PROTECTED \
@@ -25,7 +26,8 @@ void PS_OnModuleStart()
 	PS_hReloaded = FindConVarEx("password_reloaded");
 
 	if (PS_hReloaded == null) {
-		PS_hReloaded = CreateConVarEx("password_reloaded", \
+		PS_hReloaded = CreateConVarEx( \
+			"password_reloaded", \
 			"", \
 			"DONT TOUCH THIS CVAR! This will is to make sure that the password gets set upon the plugin is reloaded", \
 			FCVAR_DONTRECORD|FCVAR_UNLOGGED \
