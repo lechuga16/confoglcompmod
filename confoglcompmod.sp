@@ -3,11 +3,11 @@
 #if defined(AUTOVERSION)
 #include "version.inc"
 #else
-#define PLUGIN_VERSION	"2.2.6.6"
+#define PLUGIN_VERSION	"2.2.7"
 #endif
 
 #if !defined(DEBUG_ALL)
-#define DEBUG_ALL 	0
+#define DEBUG_ALL		0
 #endif
 
 #include <sourcemod>
@@ -142,6 +142,16 @@ public void OnClientDisconnect(int client)
 	RM_OnClientDisconnect(client);
 }
 
+public bool OnClientConnect(int client, char[] rejectmsg, int maxlen)
+{
+	//Modules
+	if (!BK_OnClientConnect(client)) { //BotKick
+		return false;
+	}
+
+	return true;
+}
+
 public void OnClientPutInServer(int client)
 {
 	RM_OnClientPutInServer();
@@ -160,6 +170,7 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 	return Plugin_Continue;
 }
 
+// left4dhooks or left4downtown functions
 public Action L4D_OnCThrowActivate(int iAbility)
 {
 	//Modules

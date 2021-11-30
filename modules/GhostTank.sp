@@ -43,9 +43,9 @@ GT_OnModuleStart()
 }
 
 // For other modules to use
-public IsTankInPlay()
+stock bool GT_IsTankInPlay()
 {
-	return g_bGT_TankIsInPlay;
+	return (g_bGT_TankIsInPlay);
 }
 
 Action:GT_OnTankSpawn_Forward()
