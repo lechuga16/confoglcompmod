@@ -90,7 +90,7 @@ GW_WarpToSurvivor(client,character)
 	if(target == 0){return;}
 
 	// Prevent people from spawning and then warp to survivor
-	SetEntProp(client,Prop_Send,"m_ghostSpawnState",256);
+	SetEntProp(client,Prop_Send,"m_ghostSpawnState", SPAWNFLAG_TOOCLOSE);
 
 	decl Float:position[3], Float:anglestarget[3];
 

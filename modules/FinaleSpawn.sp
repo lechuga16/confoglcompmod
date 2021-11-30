@@ -3,41 +3,40 @@
 #endif
 #define __finale_spawn_included
 
-#define STATE_SPAWNREADY 0
-#define STATE_TOOCLOSE 256
-#define SPAWN_RANGE 150
+#define SPAWN_RANGE			150
 
-new Handle:FS_hEnabled;
+static ConVar
+	FS_hEnabled = null;
 
-new bool:FS_bIsFinale;
-new bool:FS_bEnabled = true;
+static bool
+	FS_bIsFinale = false,
+	FS_bEnabled = true;
 
-public FS_OnModuleStart()
+void FS_OnModuleStart()
 {
-	FS_hEnabled = CreateConVarEx("reduce_finalespawnrange", "1", "Adjust the spawn range on finales for infected, to normal spawning range");
-	
-	HookConVarChange(FS_hEnabled, FS_ConVarChange);
-	
-	FS_bEnabled = GetConVarBool(FS_hEnabled);
-	
+	FS_hEnabled = CreateConVarEx("reduce_finalespawnrange", "1", "Adjust the spawn range on finales for infected, to normal spawning range", _, true, 0.0, true, 1.0);
+
+	FS_bEnabled = FS_hEnabled.BoolValue;
+	FS_hEnabled.AddChangeHook(FS_ConVarChange);
+
 	HookEvent("round_end", FS_Round_Event, EventHookMode_PostNoCopy);
 	HookEvent("round_start", FS_Round_Event, EventHookMode_PostNoCopy);
 	HookEvent("finale_start", FS_FinaleStart_Event, EventHookMode_PostNoCopy);
 }
 
-public Action:FS_Round_Event(Handle:event, const String:name[], bool:dontBroadcast)
+public void FS_Round_Event(Event hEvent, const char[] sEventName, bool bDontBroadcast)
 {
 	FS_bIsFinale = false;
 }
 
-public Action:FS_FinaleStart_Event(Handle:event, const String:name[], bool:dontBroadcast)
+public void FS_FinaleStart_Event(Event hEvent, const char[] sEventName, bool bDontBroadcast)
 {
 	FS_bIsFinale = true;
 }
 
-public FS_ConVarChange(Handle:convar, const String:oldValue[], const String:newValue[])
+public void FS_ConVarChange(ConVar hConVar, const char[] sOldValue, const char[] sNewValue)
 {
-	FS_bEnabled = GetConVarBool(FS_hEnabled);
+	FS_bEnabled = FS_hEnabled.BoolValue;
 }
 
 void FS_OnOnClientPutInServer(int client)
@@ -45,37 +44,55 @@ void FS_OnOnClientPutInServer(int client)
 	SDKHook(client, SDKHook_PreThinkPost, HookCallback);
 }
 
-public HookCallback(client)
+public void HookCallback(int client)
 {
-	if (!FS_bEnabled || !IsPluginEnabled()) return;
-	if (!FS_bIsFinale) return;
-	if (GetClientTeam(client) != TEAM_INFECTED) return;
-	if (GetEntProp(client,Prop_Send,"m_isGhost",1) != 1) return;
-	
-	if (GetEntProp(client, Prop_Send, "m_ghostSpawnState") == STATE_TOOCLOSE)
-	{
-		if (!TooClose(client))
-		{
-			SetEntProp(client, Prop_Send, "m_ghostSpawnState", STATE_SPAWNREADY);
+	if (!FS_bIsFinale) {
+		return;
+	}
+
+	//if (!FS_bEnabled) { // rework version
+	if (!FS_bEnabled || !IsPluginEnabled()) { // original
+		return;
+	}
+
+	if (GetClientTeam(client) != TEAM_INFECTED) {
+		return;
+	}
+
+	if (GetEntProp(client, Prop_Send, "m_isGhost", 1) != 1) {
+		return;
+	}
+
+	if (GetEntProp(client, Prop_Send, "m_ghostSpawnState") == SPAWNFLAG_TOOCLOSE) {
+		if (!TooClose(client)) {
+			SetEntProp(client, Prop_Send, "m_ghostSpawnState", SPAWNFLAG_READY);
 		}
 	}
 }
 
-bool:TooClose(client)
+static bool TooClose(int client)
 {
-	decl Float:fInfLocation[3], Float:fSurvLocation[3], Float:fVector[3];
+	int index = 0;
+	float fInfLocation[3], fSurvLocation[3], fVector[3];
 	GetClientAbsOrigin(client, fInfLocation);
-	
-	for (new i = 0; i < 4; i++)
-	{
-		new index = GetSurvivorIndex(i);
-		if (index == 0) continue;
-		if (!IsPlayerAlive(index)) continue;
+
+	for (int i = 0; i < 4; i++) {
+		index = GetSurvivorIndex(i);
+		if (index == 0) {
+			continue;
+		}
+
+		if (!IsPlayerAlive(index)) {
+			continue;
+		}
+
 		GetClientAbsOrigin(index, fSurvLocation);
-		
 		MakeVectorFromPoints(fInfLocation, fSurvLocation, fVector);
-		
-		if (GetVectorLength(fVector) <= SPAWN_RANGE) return true;
+
+		if (GetVectorLength(fVector) <= SPAWN_RANGE) {
+			return true;
+		}
 	}
+
 	return false;
 }
