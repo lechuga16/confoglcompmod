@@ -64,16 +64,20 @@ Action:GT_OnTankSpawn_Forward()
 	return Plugin_Continue;
 }
 
-public Action:L4D_OnCThrowActivate()
+Action:GT_OnCThrowActivate()
 {
-	if(IsPluginEnabled() && IsTankInPlay() && GetConVarBool(g_hGT_BlockPunchRock) && GetClientButtons(g_iGT_TankClient) & IN_ATTACK)
-	{
-		if(IsDebugEnabled())
-		{
+	if (IsPluginEnabled()
+		&& g_bGT_TankIsInPlay
+		&& GetConVarBool(g_hGT_BlockPunchRock)
+		&& GetClientButtons(g_iGT_TankClient) & IN_ATTACK
+	) {
+		if (IsDebugEnabled()) {
 			LogMessage("[GT] Blocking Haymaker on %L", g_iGT_TankClient);
 		}
+
 		return Plugin_Handled;
 	}
+
 	return Plugin_Continue;
 }
 
