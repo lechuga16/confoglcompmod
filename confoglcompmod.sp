@@ -149,6 +149,7 @@ public void OnClientPutInServer(int client)
 	RM_OnClientPutInServer();
 	UL_OnClientPutInServer();
 	PS_OnClientPutInServer(client);
+	FS_OnOnClientPutInServer(client);
 }
 
 public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3], float angles[3], int &weapon, \

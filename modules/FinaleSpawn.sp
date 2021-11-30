@@ -40,14 +40,14 @@ public FS_ConVarChange(Handle:convar, const String:oldValue[], const String:newV
 	FS_bEnabled = GetConVarBool(FS_hEnabled);
 }
 
-public OnClientPostAdminCheck(client)
+void FS_OnOnClientPutInServer(int client)
 {
 	SDKHook(client, SDKHook_PreThinkPost, HookCallback);
 }
 
 public HookCallback(client)
 {
-	if (!FS_bEnabled || !IsPluginEnabled) return;
+	if (!FS_bEnabled || !IsPluginEnabled()) return;
 	if (!FS_bIsFinale) return;
 	if (GetClientTeam(client) != TEAM_INFECTED) return;
 	if (GetEntProp(client,Prop_Send,"m_isGhost",1) != 1) return;
