@@ -44,7 +44,7 @@ public Action:WC_PlayerUse_Event(Handle:event, const String:name[], bool:dontBro
 	new primary = GetPlayerWeaponSlot(client, 0);
 	if (!IsValidEdict(primary)) return;
 	
-	decl String:primary_name[64];
+	decl String:primary_name[MAX_ENTITY_NAME_LENGTH];
 	GetEdictClassname(primary, primary_name, sizeof(primary_name));
 	
 	if (StrEqual(primary_name, "weapon_hunting_rifle") || StrEqual(primary_name, "weapon_sniper_military") || StrEqual(primary_name, "weapon_sniper_awp") || StrEqual(primary_name, "weapon_sniper_scout") || StrEqual(primary_name, "weapon_rifle_sg552"))
@@ -82,6 +82,8 @@ public Action:WC_PlayerUse_Event(Handle:event, const String:name[], bool:dontBro
 SniperCount(client)
 {
 	new count = 0;
+	decl String:temp[MAX_ENTITY_NAME_LENGTH];
+
 	for (new i = 0; i < 4; i++)
 	{
 		new index = GetSurvivorIndex(i);
@@ -90,7 +92,6 @@ SniperCount(client)
 			new ent = GetPlayerWeaponSlot(index, 0);
 			if (IsValidEdict(ent))
 			{
-				decl String:temp[64];
 				GetEdictClassname(ent, temp, sizeof(temp));
 				if (StrEqual(temp, "weapon_hunting_rifle") || StrEqual(temp, "weapon_sniper_military") || StrEqual(temp, "weapon_sniper_awp") || StrEqual(temp, "weapon_sniper_scout") || StrEqual(temp, "weapon_rifle_sg552")) count++;
 			}

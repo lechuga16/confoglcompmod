@@ -275,7 +275,7 @@ bool:ER_KillParachutist(ent)
 
 bool:ER_ReplaceTriggerHurtGhost(ent)
 {
-	decl String:buf[32];
+	decl String:buf[MAX_ENTITY_NAME_LENGTH];
 	GetEdictClassname(ent, buf, sizeof(buf));
 	if (StrEqual(buf, "trigger_hurt_ghost"))
 	{
@@ -330,7 +330,7 @@ public Action:ER_RoundStart_Timer(Handle:timer)
 {
 	if (!IsPluginEnabled()) return;
 	
-	decl String:sBuffer[64];
+	decl String:sBuffer[MAX_ENTITY_NAME_LENGTH];
 	if(DEBUG_ER || IsDebugEnabled())
 		LogMessage("[ER] Starting RoundStart Event");
 	

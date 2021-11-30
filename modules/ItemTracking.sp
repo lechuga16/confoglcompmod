@@ -485,7 +485,7 @@ static int GetWeaponIDFromItemList(ItemList:id)
 
 static ItemList:GetItemIndexFromEntity(entity)
 {
-	static String:classname[128];
+	static String:classname[MAX_ENTITY_NAME_LENGTH];
 	new ItemList:index;
 	GetEdictClassname(entity, classname, sizeof(classname));
 	if(GetTrieValue(g_hItemListTrie, classname, index))

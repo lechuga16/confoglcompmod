@@ -311,7 +311,7 @@ stock Float:SM_CalculateAvgHealth(&iAliveCount=0)
 	new iCurrHealth;
 	new iCurrTemp;
 	new iIncapCount;
-	decl String:strTemp[50];
+	decl String:strTemp[MAX_ENTITY_NAME_LENGTH];
 	
 	new iSurvCount;
 	iAliveCount =0;

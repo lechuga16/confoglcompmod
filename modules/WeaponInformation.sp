@@ -740,7 +740,7 @@ bool:WI_IsStatic(iEntity, iWeaponIndex)
 		return false;
 	}
 	
-	decl String:sEntityClassName[128], String:sBuffer[128];
+	decl String:sEntityClassName[MAX_ENTITY_NAME_LENGTH], String:sBuffer[128];
 	GetEdictClassname(iEntity,sEntityClassName,sizeof(sEntityClassName));
 	Format(sBuffer,sizeof(sBuffer),"%s%s%s",SPAWN_PREFIX,Weapon_Spawns[iWeaponIndex],SPAWN_SURFIX);
 	
@@ -1231,13 +1231,13 @@ public Action:WI_RoundStartLoop(Handle:timer)
 	}
 	Weapon_iKitCount = 0;
 	
-	decl iEntity, entcount, String:entclass[128], iWeaponIndex;
+	decl iEntity, entcount, String:entclass[MAX_ENTITY_NAME_LENGTH], iWeaponIndex;
 	entcount = GetEntityCount();
 
 	for(iEntity = (MaxClients + 1); iEntity <= entcount; iEntity++)
 	{
 		if(!IsValidEdict(iEntity) || !IsValidEntity(iEntity)){continue;}
-		GetEdictClassname(iEntity,entclass,128);
+		GetEdictClassname(iEntity, entclass, sizeof(entclass));
 		
 		iWeaponIndex = WI_GetWeaponIndex(iEntity,entclass);
 		if(iWeaponIndex != WEAPON_NULL_INDEX)
@@ -1274,7 +1274,7 @@ public Action:WI_SpawnerGiveItem_Event(Handle:event, const String:name[], bool:d
 	if(!IsPluginEnabled()){return;}
 	
 	new iEntity = GetEventInt(event, "spawner");
-	decl String:sEntityClassName[128];
+	decl String:sEntityClassName[MAX_ENTITY_NAME_LENGTH];
 	GetEdictClassname(iEntity, sEntityClassName, sizeof(sEntityClassName));
 	
 	new iWeaponIndex = WI_GetWeaponIndex(iEntity, sEntityClassName);

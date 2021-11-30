@@ -3,6 +3,8 @@
 #endif
 #define __confogl_constants_included
 
+#define MAX_ENTITY_NAME_LENGTH		64
+
 #define START_SAFEROOM				(1 << 0)
 #define END_SAFEROOM				(1 << 1)
 

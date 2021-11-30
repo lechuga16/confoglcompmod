@@ -247,7 +247,7 @@ static stock Float:FindStartPointHeuristic(Float:result[3])
 	new Float:kitOrigin[4][3];
 	new Float:averageOrigin[3];
 	new entcount = GetEntityCount();
-	decl String:entclass[128];
+	decl String:entclass[MAX_ENTITY_NAME_LENGTH];
 
 	for(new iEntity = (MaxClients + 1); iEntity <= entcount && kits < 4; iEntity++)
 	{
