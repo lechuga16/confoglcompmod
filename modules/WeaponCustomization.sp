@@ -3,13 +3,22 @@
 #endif
 #define __weapon_customization_included
 
+static const char sSniperNames[][] =
+{
+	"weapon_hunting_rifle",
+	"weapon_sniper_military",
+	"weapon_sniper_awp",
+	"weapon_sniper_scout",
+	"weapon_rifle_sg552"
+};
+
+static char
+	WC_sLastWeapon[64] = "\0";
+
 static int
 	WC_iLimitCount = 1,
 	WC_iLastWeapon = -1,
 	WC_iLastClient = -1;
-
-static char
-	WC_sLastWeapon[64] = "\0";
 
 static ConVar
 	WC_hLimitCount = null;
@@ -57,12 +66,7 @@ public void WC_PlayerUse_Event(Event hEvent, const char[] sEventName, bool bDont
 	char primary_name[MAX_ENTITY_NAME_LENGTH];
 	GetEdictClassname(primary, primary_name, sizeof(primary_name));
 
-	if (strcmp(primary_name, "weapon_hunting_rifle") == 0
-		|| strcmp(primary_name, "weapon_sniper_military") == 0
-		|| strcmp(primary_name, "weapon_sniper_awp") == 0
-		|| strcmp(primary_name, "weapon_sniper_scout") == 0
-		|| strcmp(primary_name, "weapon_rifle_sg552") == 0
-	) {
+	if (IsValidSniper(primary_name)) {
 		if (SniperCount(client) >= WC_iLimitCount) {
 			RemovePlayerItem(client, primary);
 			PrintToChat(client, "\x01[\x05Confogl\x01] Maximum \x04%d \x01sniping rifle(s) is enforced.", WC_iLimitCount);
@@ -104,12 +108,7 @@ static int SniperCount(int client)
 			if (ent > 0 && IsValidEdict(ent)) {
 				GetEdictClassname(ent, temp, sizeof(temp));
 
-				if (strcmp(temp, "weapon_hunting_rifle") == 0
-					|| strcmp(temp, "weapon_sniper_military") == 0
-					|| strcmp(temp, "weapon_sniper_awp") == 0
-					|| strcmp(temp, "weapon_sniper_scout") == 0
-					|| strcmp(temp, "weapon_rifle_sg552") == 0
-				) {
+				if (IsValidSniper(temp)) {
 					count++;
 				}
 			}
@@ -117,4 +116,15 @@ static int SniperCount(int client)
 	}
 
 	return count;
+}
+
+static bool IsValidSniper(const char[] sWeaponName)
+{
+	for (int i = 0; i < sizeof(sSniperNames); i++) {
+		if (strcmp(sWeaponName, sSniperNames[i], true) == 0) {
+			return true;
+		}
+	}
+
+	return false;
 }
