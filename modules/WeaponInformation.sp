@@ -1029,10 +1029,7 @@ WI_ReplaceExtra(iEntity,iWeaponIndex)
 	}
 	else if(GetVectorDistance(Weapon_fMapOrigin_End, fOrigin) <= Weapon_fMapDist_End)
 	{
-		if(IsMapFinale())
-			bIsInFinaleArea = true;
-		else
-			bIsInEndSaferoom = true;
+		bIsInFinaleArea = (L4D_IsMissionFinalMap());
 	}
 	
 	
