@@ -6,7 +6,6 @@
 #define ZOMBIECLASS_TANK			8
 #define THROWRANGE					99999999.0
 #define FIREIMMUNITY_TIME			5.0
-#define NCAPHEALTH					300
 
 static int
 	g_iPasses = 0,
@@ -29,6 +28,7 @@ static ConVar
 	g_hCvarZMobSpawnMaxIntervalNormal = null,
 	g_hCvarMobSpawnMinSize = null,
 	g_hCvarMobSpawnMaxSize = null,
+	g_hCvarSurvivorIncapHealth = null,
 	g_hGT_RemoveEscapeTank = null,
 	g_hGT_BlockPunchRock = null,
 	g_hGT_DisableTankHordes = null; // Disable Tank Hordes items
@@ -46,6 +46,7 @@ void GT_OnModuleStart()
 	g_hGT_DisableTankHordes = CreateConVarEx("disable_tank_hordes", "0", "Disable natural hordes while tanks are in play", _, true, 0.0, true, 1.0);
 	g_hGT_BlockPunchRock = CreateConVarEx("block_punch_rock", "0", "Block tanks from punching and throwing a rock at the same time", _, true, 0.0, true, 1.0);
 
+	g_hCvarSurvivorIncapHealth = FindConVar("survivor_incap_health");
 	g_hCvarTankThrowAllowRange = FindConVar("tank_throw_allow_range");
 	g_hCvarDirectorTankLotterySelectionTime = FindConVar("director_tank_lottery_selection_time");
 	g_hCvarZMobSpawnMinIntervalNormal = FindConVar("z_mob_spawn_min_interval_normal");
@@ -221,18 +222,18 @@ public void GT_TankSpawn(Event hEvent, const char[] sEventName, bool bDontBroadc
 
 public void GT_TankOnFire(Event hEvent, const char[] sEventName, bool bDontBroadcast)
 {
+	int dmgtype = hEvent.GetInt("type");
+
+	if (!(dmgtype & DMG_BURN)) { //more performance
+		return;
+	}
+
 	if (!g_bGT_TankIsInPlay || !g_bGT_TankHasFireImmunity || !IsPluginEnabled() || !g_hGT_Enabled.BoolValue) {
 		return;
 	}
 
 	int client = GetClientOfUserId(hEvent.GetInt("userid"));
 	if (client < 1 || g_iGT_TankClient != client || !IsClientInGame(client) || GetClientTeam(client) != TEAM_INFECTED) {
-		return;
-	}
-
-	int dmgtype = hEvent.GetInt("type");
-
-	if (dmgtype != DMG_BURN) {
 		return;
 	}
 
@@ -255,7 +256,8 @@ public void GT_PlayerIncap(Event hEvent, const char[] sEventName, bool bDontBroa
 		return;
 	}
 
-	int client = GetClientOfUserId(hEvent.GetInt("userid"));
+	int userid = hEvent.GetInt("userid");
+	int client = GetClientOfUserId(userid);
 	if (client < 1 || !IsClientInGame(client) || GetClientTeam(client) != TEAM_SURVIVOR) {
 		return;
 	}
@@ -263,13 +265,16 @@ public void GT_PlayerIncap(Event hEvent, const char[] sEventName, bool bDontBroa
 	SetEntProp(client, Prop_Send, "m_isIncapacitated", 0, 1);
 	SetEntityHealth(client, 1);
 
-	CreateTimer(0.4, GT_IncapTimer, client);
+	CreateTimer(0.4, GT_IncapTimer, userid, TIMER_FLAG_NO_MAPCHANGE);
 }
 
-public Action GT_IncapTimer(Handle hTimer, any client)
+public Action GT_IncapTimer(Handle hTimer, int userid)
 {
-	SetEntProp(client, Prop_Send, "m_isIncapacitated", 1, 1);
-	SetEntityHealth(client, INCAPHEALTH);
+	int client = GetClientOfUserId(userid);
+	if (client > 0) {
+		SetEntProp(client, Prop_Send, "m_isIncapacitated", 1, 1);
+		SetEntityHealth(client, g_hCvarSurvivorIncapHealth.IntValue);
+	}
 
 	return Plugin_Stop;
 }
