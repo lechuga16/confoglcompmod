@@ -3,99 +3,118 @@
 #endif
 #define __weapon_customization_included
 
-new Handle:WC_hLimitCount;
+static int
+	WC_iLimitCount = 1,
+	WC_iLastWeapon = -1,
+	WC_iLastClient = -1;
 
-new WC_iLimitCount = 1;
-new WC_iLastWeapon = -1;
-new WC_iLastClient = -1;
-new String:WC_sLastWeapon[64];
+static char
+	WC_sLastWeapon[64] = "\0";
 
-public WC_OnModuleStart()
+static ConVar
+	WC_hLimitCount = null;
+
+void WC_OnModuleStart()
 {
-	WC_hLimitCount = CreateConVarEx("limit_sniper", "1", "Limits the maximum number of sniping rifles at one time to this number", 0, true, 0.0, true, 4.0);
-	HookConVarChange(WC_hLimitCount, WC_ConVarChange);
-	
-	WC_iLimitCount = GetConVarInt(WC_hLimitCount);
-	
+	WC_hLimitCount = CreateConVarEx("limit_sniper", "1", "Limits the maximum number of sniping rifles at one time to this number", _, true, 0.0, true, 4.0);
+
+	WC_iLimitCount = WC_hLimitCount.IntValue;
+	WC_hLimitCount.AddChangeHook(WC_ConVarChange);
+
 	HookEvent("player_use", WC_PlayerUse_Event);
 	HookEvent("weapon_drop", WC_WeaponDrop_Event);
 }
 
-public WC_ConVarChange(Handle:convar, const String:oldValue[], const String:newValue[])
+public void WC_ConVarChange(ConVar hConVar, const char[] sOldValue, const char[] sNewValue)
 {
-	WC_iLimitCount = GetConVarInt(WC_hLimitCount);
+	WC_iLimitCount = WC_hLimitCount.IntValue;
 }
 
-public Action:WC_WeaponDrop_Event(Handle:event, const String:name[], bool:dontBroadcast)
+public void WC_WeaponDrop_Event(Event hEvent, const char[] sEventName, bool bDontBroadcast)
 {
-	if (!IsPluginEnabled()) return;
-	WC_iLastWeapon = GetEventInt(event, "propid");
-	WC_iLastClient = GetClientOfUserId(GetEventInt(event, "userid"));
-	GetEventString(event, "item", WC_sLastWeapon, sizeof(WC_sLastWeapon));
-	
+	if (!IsPluginEnabled()) {
+		return;
+	}
+
+	WC_iLastWeapon = hEvent.GetInt("propid");
+	WC_iLastClient = GetClientOfUserId(hEvent.GetInt("userid"));
+	hEvent.GetString("item", WC_sLastWeapon, sizeof(WC_sLastWeapon));
 }
 
-public Action:WC_PlayerUse_Event(Handle:event, const String:name[], bool:dontBroadcast)
+public void WC_PlayerUse_Event(Event hEvent, const char[] sEventName, bool bDontBroadcast)
 {
-	if (!IsPluginEnabled()) return;
-	
-	new client = GetClientOfUserId(GetEventInt(event, "userid"));
-	
-	new primary = GetPlayerWeaponSlot(client, 0);
-	if (!IsValidEdict(primary)) return;
-	
-	decl String:primary_name[MAX_ENTITY_NAME_LENGTH];
+	if (!IsPluginEnabled()) {
+		return;
+	}
+
+	int client = GetClientOfUserId(hEvent.GetInt("userid"));
+
+	int primary = GetPlayerWeaponSlot(client, 0);
+	if (primary < 1 || !IsValidEdict(primary)) {
+		return;
+	}
+
+	char primary_name[MAX_ENTITY_NAME_LENGTH];
 	GetEdictClassname(primary, primary_name, sizeof(primary_name));
-	
-	if (StrEqual(primary_name, "weapon_hunting_rifle") || StrEqual(primary_name, "weapon_sniper_military") || StrEqual(primary_name, "weapon_sniper_awp") || StrEqual(primary_name, "weapon_sniper_scout") || StrEqual(primary_name, "weapon_rifle_sg552"))
-	{
-		if (SniperCount(client) >= WC_iLimitCount)
-		{
-			if (IsValidEdict(primary))
-			{
-				RemovePlayerItem(client, primary);
-				PrintToChat(client, "\x01[\x05Confogl\x01] Maximum \x04%d \x01sniping rifle(s) is enforced.", WC_iLimitCount);
-			}
-			
-			if (WC_iLastClient == client)
-			{
-				if (IsValidEdict(WC_iLastWeapon))
-				{
+
+	if (strcmp(primary_name, "weapon_hunting_rifle") == 0
+		|| strcmp(primary_name, "weapon_sniper_military") == 0
+		|| strcmp(primary_name, "weapon_sniper_awp") == 0
+		|| strcmp(primary_name, "weapon_sniper_scout") == 0
+		|| strcmp(primary_name, "weapon_rifle_sg552") == 0
+	) {
+		if (SniperCount(client) >= WC_iLimitCount) {
+			RemovePlayerItem(client, primary);
+			PrintToChat(client, "\x01[\x05Confogl\x01] Maximum \x04%d \x01sniping rifle(s) is enforced.", WC_iLimitCount);
+			//CPrintToChat(client, "{blue}[{default}Confogl{blue}] {default}Maximum {blue}%d {olive}sniping rifle(s) {default}is enforced.", WC_iLimitCount); //rework
+
+			if (WC_iLastClient == client) {
+				if (WC_iLastWeapon > 0 && IsValidEdict(WC_iLastWeapon)) {
 					KillEntity(WC_iLastWeapon);
-					new flags = GetCommandFlags("give");
+
+					int flags = GetCommandFlags("give");
 					SetCommandFlags("give", flags ^ FCVAR_CHEAT);
-					
-					decl String:sTemp[64];
+
+					char sTemp[64];
 					Format(sTemp, sizeof(sTemp), "give %s", WC_sLastWeapon);
 					FakeClientCommand(client, sTemp);
-					
+
 					SetCommandFlags("give", flags);
 				}
 			}
 		}
 	}
+
 	WC_iLastWeapon = -1;
 	WC_iLastClient = -1;
 	WC_sLastWeapon[0] = 0;
 }
 
-SniperCount(client)
+static int SniperCount(int client)
 {
-	new count = 0;
-	decl String:temp[MAX_ENTITY_NAME_LENGTH];
+	char temp[MAX_ENTITY_NAME_LENGTH];
+	int count = 0, index = 0, ent = 0;
 
-	for (new i = 0; i < 4; i++)
-	{
-		new index = GetSurvivorIndex(i);
-		if (index != client && index != 0 && IsClientConnected(index))
-		{
-			new ent = GetPlayerWeaponSlot(index, 0);
-			if (IsValidEdict(ent))
-			{
+	for (int i = 0; i < 4; i++) {
+		index = GetSurvivorIndex(i);
+
+		if (index != client && index != 0 && IsClientConnected(index)) {
+			ent = GetPlayerWeaponSlot(index, 0);
+
+			if (ent > 0 && IsValidEdict(ent)) {
 				GetEdictClassname(ent, temp, sizeof(temp));
-				if (StrEqual(temp, "weapon_hunting_rifle") || StrEqual(temp, "weapon_sniper_military") || StrEqual(temp, "weapon_sniper_awp") || StrEqual(temp, "weapon_sniper_scout") || StrEqual(temp, "weapon_rifle_sg552")) count++;
+
+				if (strcmp(temp, "weapon_hunting_rifle") == 0
+					|| strcmp(temp, "weapon_sniper_military") == 0
+					|| strcmp(temp, "weapon_sniper_awp") == 0
+					|| strcmp(temp, "weapon_sniper_scout") == 0
+					|| strcmp(temp, "weapon_rifle_sg552") == 0
+				) {
+					count++;
+				}
 			}
 		}
 	}
+
 	return count;
 }
