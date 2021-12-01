@@ -31,12 +31,12 @@ void WS_OnModuleStart()
 	HookEvent("jockey_ride_end", WS_JockeyRideEnd);
 }
 
-public void WS_FactorConVarChange(ConVar hConVar, const char[] sOldValue[], const char[] sNewValue)
+public void WS_FactorConVarChange(ConVar hConVar, const char[] sOldValue, const char[] sNewValue)
 {
 	WS_fSlowdownFactor = WS_hFactor.FloatValue;
 }
 
-public void WS_ConVarChange(ConVar hConVar, const char[] sOldValue[], const char[] sNewValue)
+public void WS_ConVarChange(ConVar hConVar, const char[] sOldValue, const char[] sNewValue)
 {
 	WS_SetStatus();
 }

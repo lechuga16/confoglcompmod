@@ -105,14 +105,16 @@ const LAST_WEAPON							= 18;
 const FIRST_EXTRA							= 19;
 const LAST_EXTRA							= 27;
 
-enum WEAPONATTRIBUTES
+enum /*WEAPONATTRIBUTES*/
 {
 	WeaponID,
 	Tier1EquivalentIndex,
-	ReplacementIndex
+	ReplacementIndex,
+
+	WeaponAttributes_Size
 }
 
-static const Weapon_Attributes[NUM_OF_WEAPONS][WEAPONATTRIBUTES] = {
+static const Weapon_Attributes[NUM_OF_WEAPONS][WeaponAttributes_Size] = {
 	
 	//====================================================
 	// Weapons
@@ -631,7 +633,7 @@ public WI_ConvarChange(Handle:convar, const String:oldValue[], const String:newV
 // Searches the weapon index for the given entity
 //  class
 
-WI_GetWeaponIndex(iEntity, const String:sEntityClassName[128])
+WI_GetWeaponIndex(iEntity, const char[] sEntityClassName)
 {
 	//------------------------------------------------
 	// Check for weapon in class name

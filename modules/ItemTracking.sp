@@ -4,30 +4,35 @@
 #define __item_tracking_included
 
 // Item lists for tracking/decoding/etc
-enum ItemList {
+enum /*ItemList*/
+{
 	IL_PainPills,
 	IL_Adrenaline,
 	// Not sure we need these.
 	//IL_FirstAid,
-	//IL_Defib,  
+	//IL_Defib,
 	IL_PipeBomb,
 	IL_Molotov,
-	IL_VomitJar
+	IL_VomitJar,
+
+	ItemList_Size
 };
-static Handle:g_hItemListTrie;
-
-
 
 // Names for cvars, kv, descriptions
 // [ItemIndex][shortname=0,fullname=1,spawnname=2]
-enum ItemNames {	
-	IN_shortname,	
-	IN_longname, 	
-	IN_officialname, 	
-	IN_modelname 
+enum /*ItemNames*/
+{
+	IN_shortname,
+	IN_longname,
+	IN_officialname,
+	IN_modelname,
+
+	ItemNames_Size
 };
 
-static const String:g_sItemNames[ItemList][ItemNames][] =
+static Handle:g_hItemListTrie;
+
+static const String:g_sItemNames[ItemList_Size][ItemNames_Size][] =
 {
 	{ "pills", "pain pills", "pain_pills", "painpills" },
 	{ "adrenaline", "adrenaline shots", "adrenaline", "pipebomb" },
@@ -46,7 +51,8 @@ enum ItemLimitSettings
 };
 
 // For spawn entires adt_array
-enum ItemTracking {
+enum ItemTracking
+{
 	IT_entity,
 	Float:IT_origins,
 	Float:IT_origins1,
@@ -56,16 +62,15 @@ enum ItemTracking {
 	Float:IT_angles2
 };
 
-
 static Handle:g_hCvarEnabled;
 static Handle:g_hCvarConsistentSpawns;
 static Handle:g_hCvarMapSpecificSpawns;
 // ADT Array Handle for actual item spawns
-static Handle:g_hItemSpawns[ItemList];
+static Handle:g_hItemSpawns[ItemList_Size];
 // CVAR Handle Array for item limits
-static Handle:g_hCvarLimits[ItemList];
+static Handle:g_hCvarLimits[ItemList_Size];
 // Current item limits array
-static g_iItemLimits[ItemList];
+static g_iItemLimits[ItemList_Size];
 // Is round 1 over?
 static bool:g_bIsRound1Over;
 
@@ -89,7 +94,7 @@ public IT_OnModuleStart()
 	g_hCvarMapSpecificSpawns = CreateConVarEx("itemtracking_mapspecific", "0", "Change how mapinfo.txt overrides work. 0 = ignore mapinfo.txt, 1 = allow limit reduction, 2 = allow limit increases,");
 	
 	// Create itemlimit cvars
-	for(new i = 0; i < _:ItemList; i++)
+	for(new i = 0; i < ItemList_Size; i++)
 	{
 		Format(sNameBuf, sizeof(sNameBuf), "%s_limit", g_sItemNames[i][IN_shortname]);
 		Format(sCvarDescBuf, sizeof(sCvarDescBuf), "Limits the number of %s on each map. -1: no limit; >=0: limit to cvar value", g_sItemNames[i][IN_longname]);
@@ -101,7 +106,7 @@ public IT_OnModuleStart()
 	
 	
 	// Create item spawns array;
-	for (new i = 0; i < _:ItemList; i++)
+	for (new i = 0; i < ItemList_Size; i++)
 	{
 		g_hItemSpawns[i] = CreateArray(_:ItemTracking); 
 	}
@@ -116,13 +121,14 @@ public IT_OnModuleStart()
 
 public IT_OnMapStart()
 {
-	for (new i; i < _:ItemList; i++) g_iItemLimits[i] = GetConVarInt(g_hCvarLimits[i]);
+	for (new i; i < ItemList_Size; i++) g_iItemLimits[i] = GetConVarInt(g_hCvarLimits[i]);
+
 	if (GetMapInfoMode())
 	{
 		decl itemlimit;
 		new Handle:kOverrideLimits = CreateKeyValues("ItemLimits");
 		CopyMapSubsection(kOverrideLimits, "ItemLimits");
-		for (new i = 0; i < _:ItemList; i++)
+		for (new i = 0; i < ItemList_Size; i++)
 		{
 			itemlimit = GetConVarInt(g_hCvarLimits[i]);
 			new temp = KvGetNum(kOverrideLimits, g_sItemNames[i][IN_officialname], itemlimit);
@@ -240,7 +246,7 @@ static Handle:CreateItemListTrie()
 
 static KillRegisteredItems()
 {
-	decl ItemList:itemindex;
+	int itemindex;
 	new psychonic = GetEntityCount();
 
 	for(new i = (MaxClients + 1); i <= psychonic; i++)
@@ -248,7 +254,7 @@ static KillRegisteredItems()
 		if(IsValidEntity(i))
 		{
 			itemindex = GetItemIndexFromEntity(i);
-			if(itemindex >= ItemList:0 /* && !IsEntityInSaferoom(i) */ )
+			if(itemindex >= 0 /* && !IsEntityInSaferoom(i) */ )
 			{
 				if (IsEntityInSaferoom(i, START_SAFEROOM) && g_iSaferoomCount[START_SAFEROOM - 1] < g_iSurvivorLimit)
 				{
@@ -281,7 +287,7 @@ static SpawnItems()
 	decl String:sModelname[PLATFORM_MAX_PATH];
 	int wepid;
 
-	for(new itemidx = 0; itemidx < _:ItemList; itemidx++)
+	for(new itemidx = 0; itemidx < ItemList_Size; itemidx++)
 	{
 		Format(sModelname, sizeof(sModelname), "models/w_models/weapons/w_eq_%s.mdl", g_sItemNames[itemidx][IN_modelname]);
 		arrsize = GetArraySize(g_hItemSpawns[itemidx]);
@@ -290,7 +296,7 @@ static SpawnItems()
 			GetArrayArray(g_hItemSpawns[itemidx], idx, curitem[0]);
 			GetSpawnOrigins(origins, curitem);
 			GetSpawnAngles(angles, curitem);
-			wepid = GetWeaponIDFromItemList(ItemList:itemidx);
+			wepid = GetWeaponIDFromItemList(itemidx);
 			if(IsDebugEnabled())
 			{
 				LogMessage("[IT] Spawning an instance of item %s (%d, wepid %d), number %d, at %.02f %.02f %.02f", 
@@ -309,7 +315,7 @@ static SpawnItems()
 
 static EnumerateSpawns()
 {
-	new ItemList:itemindex;
+	int itemindex;
 	decl curitem[ItemTracking], Float:origins[3], Float:angles[3];
 	new psychonic = GetEntityCount();
 
@@ -318,7 +324,7 @@ static EnumerateSpawns()
 		if(IsValidEntity(i))
 		{
 			itemindex = GetItemIndexFromEntity(i);
-			if(itemindex >= ItemList:0 /* && !IsEntityInSaferoom(i) */ )
+			if(itemindex >= 0 /* && !IsEntityInSaferoom(i) */ )
 			{
 				if (IsEntityInSaferoom(i, START_SAFEROOM))
 				{
@@ -389,9 +395,9 @@ static RemoveToLimits()
 {
 	new curlimit;
 	decl curitem[ItemTracking];
-	for(new itemidx = 0; itemidx < _:ItemList; itemidx++)
+	for(new itemidx = 0; itemidx < ItemList_Size; itemidx++)
 	{
-		curlimit = GetItemLimit(ItemList:itemidx);
+		curlimit = GetItemLimit(itemidx);
 		if (curlimit >0)
 		{
 			// Kill off item spawns until we've reduced the item to the limit
@@ -445,12 +451,12 @@ static GetSpawnAngles(Float:buf[3], const spawn[ItemTracking])
 	buf[2]=spawn[IT_angles2];
 }
 
-static GetItemLimit(ItemList:itemidx)
+static GetItemLimit(int itemidx)
 {
 	return g_iItemLimits[itemidx];
 }
 
-static int GetWeaponIDFromItemList(ItemList:id)
+static int GetWeaponIDFromItemList(int id)
 {
 	switch(id)
 	{
@@ -483,10 +489,10 @@ static int GetWeaponIDFromItemList(ItemList:id)
 	return -1;
 }
 
-static ItemList:GetItemIndexFromEntity(entity)
+static int GetItemIndexFromEntity(entity)
 {
 	static String:classname[MAX_ENTITY_NAME_LENGTH];
-	new ItemList:index;
+	int index;
 	GetEdictClassname(entity, classname, sizeof(classname));
 	if(GetTrieValue(g_hItemListTrie, classname, index))
 	{
@@ -524,6 +530,6 @@ static ItemList:GetItemIndexFromEntity(entity)
 			}
 		}
 	}
-	
-	return ItemList:-1;
+
+	return -1;
 }

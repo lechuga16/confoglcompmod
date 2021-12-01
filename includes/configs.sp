@@ -7,7 +7,7 @@ static const char
 	customCfgDir[] = "cfgogl";
 
 static char
-	DirSeparator = "\0",
+	DirSeparator = '\0',
 	configsPath[PLATFORM_MAX_PATH] = "\0",
 	cfgPath[PLATFORM_MAX_PATH] = "\0",
 	customCfgPath[PLATFORM_MAX_PATH] = "\0";

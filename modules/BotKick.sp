@@ -38,7 +38,7 @@ void BK_OnModuleStart()
 	HookEvent("player_bot_replace", BK_PlayerBotReplace);
 }
 
-public void BK_ConVarChange(ConVar hConVar, const char sOldValue, const char[] sNewValue)
+public void BK_ConVarChange(ConVar hConVar, const char[] sOldValue, const char[] sNewValue)
 {
 	BK_iEnable = BK_hEnable.IntValue;
 }

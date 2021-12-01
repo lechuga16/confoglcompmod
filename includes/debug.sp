@@ -23,7 +23,7 @@ void Debug_OnModuleStart()
 	g_hDebugConVar.AddChangeHook(Debug_ConVarChange);
 }
 
-public void Debug_ConVarChange(ConVar hConvar, const char[] sOldValue[], const char[] sNewValue)
+public void Debug_ConVarChange(ConVar hConvar, const char[] sOldValue, const char[] sNewValue)
 {
 	g_bConfoglDebug = view_as<bool>(StringToInt(sNewValue));
 }

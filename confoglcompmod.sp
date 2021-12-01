@@ -1,7 +1,7 @@
 #pragma semicolon 1
 
 #define DEBUG_ALL		0
-#define PLUGIN_VERSION	"2.2.7.1"
+#define PLUGIN_VERSION	"2.2.7.2"
 
 #include <sourcemod>
 #include <sdktools>
@@ -198,7 +198,7 @@ public Action L4D_OnSpawnTank(const float vector[3], const float qangle[3])
 public void L4D_OnSpawnTank_Post(int client, const float vecPos[3], const float vecAng[3])
 {
 	//Modules
-	BS_OnTankSpawn_Forward(); //BossSpawning
+	BS_OnTankSpawnPost_Forward(); //BossSpawning
 }
 
 public Action L4D_OnSpawnMob(int &amount)
