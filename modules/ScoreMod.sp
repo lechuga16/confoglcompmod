@@ -99,7 +99,7 @@ public SM_OnMapStart()
 	if (!IsPluginEnabled()) return;
 	
 	if (!GetConVarBool(SM_hMapMulti)) SM_fMapMulti = 1.00;
-	else SM_fMapMulti = float(GetMapMaxScore()) / 400.0;
+	else SM_fMapMulti = float(L4D_GetVersusMaxCompletionScore()) / 400.0;
 	
 	SM_bModuleIsEnabled = GetConVarBool(SM_hEnable);
 	
@@ -107,7 +107,7 @@ public SM_OnMapStart()
 	if (SM_bModuleIsEnabled) SetConVarInt(SM_hTieBreaker, 0);
 	if (SM_bModuleIsEnabled && GetConVarBool(SM_hCustomMaxDistance) && GetCustomMapMaxScore() > -1) 
 	{
-		SetMapMaxScore(GetCustomMapMaxScore());
+		L4D_SetVersusMaxCompletionScore(GetCustomMapMaxScore());
 		// to allow a distance score of 0 and a health bonus
 		if (GetCustomMapMaxScore() > 0) SM_fMapMulti = float(GetCustomMapMaxScore()) / 400.0;
 	}
@@ -305,7 +305,7 @@ stock Float:SM_CalculateAvgHealth(&iAliveCount=0)
 	new iTotalTempHealth[3];
 	
 	new Float:fTotalAdjustedTempHealth;
-	new bool:IsFinale = IsMapFinale();
+	new bool:IsFinale = L4D_IsMissionFinalMap();
 	// Temporary Storage Variables for inventory
 	new iTemp;
 	new iCurrHealth;

@@ -898,10 +898,10 @@ WI_ReplaceWeapon(iEntity, iWeaponIndex, bool:bSpawnerEvent = false)
 	{
 		if(!bSpawnerEvent)
 		{
-			if((!Weapon_bReplaceTier2 && !IsMapFinale()) || (!Weapon_bReplaceTier2_Finale && IsMapFinale()))
+			if((!Weapon_bReplaceTier2 && !L4D_IsMissionFinalMap()) || (!Weapon_bReplaceTier2_Finale && L4D_IsMissionFinalMap()))
 			{
 				#if(DEBUG_WI)
-					LogMessage("%s         We do not want to replace weapons, IsMapFinale %b",DEBUG_WI_PREFIX,IsMapFinale());
+					LogMessage("%s         We do not want to replace weapons, IsMapFinale %b",DEBUG_WI_PREFIX,L4D_IsMissionFinalMap());
 					LogMessage("%s     }",DEBUG_WI_PREFIX);
 				#endif
 				
