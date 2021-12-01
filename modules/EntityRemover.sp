@@ -5,294 +5,318 @@
 
 #define DEBUG_ER					0
 
-new Handle:kERData = INVALID_HANDLE;
-new Handle:ER_hKillParachutist;
-new bool:ER_bKillParachutist=true;
-new Handle:ER_hReplaceGhostHurt;
-new bool:ER_bReplaceGhostHurt;
-
-
 #define ER_KV_ACTION_KILL			1
 
-#define ER_KV_PROPTYPE_INT		1
+#define ER_KV_PROPTYPE_INT			1
 #define ER_KV_PROPTYPE_FLOAT		2
-#define ER_KV_PROPTYPE_BOOL		3
+#define ER_KV_PROPTYPE_BOOL			3
 #define ER_KV_PROPTYPE_STRING		4
 
 #define ER_KV_CONDITION_EQUAL		1
-#define ER_KV_CONDITION_NEQUAL	2
+#define ER_KV_CONDITION_NEQUAL		2
 #define ER_KV_CONDITION_LESS		3
 #define ER_KV_CONDITION_GREAT		4
 #define ER_KV_CONDITION_CONTAINS	5
 
+static bool
+	ER_bKillParachutist = true,
+	ER_bReplaceGhostHurt = false;
 
-public ER_OnModuleStart()
+static ConVar
+	ER_hKillParachutist = null,
+	ER_hReplaceGhostHurt = null;
+
+static KeyValues
+	kERData = null;
+
+void ER_OnModuleStart()
 {
-	HookEvent("round_start",ER_RoundStart_Event);
-	
-	ER_hKillParachutist = CreateConVarEx("remove_parachutist", "1", "Removes the parachutist from c3m2");
-	ER_hReplaceGhostHurt = CreateConVarEx("disable_ghost_hurt", "0", "Replaces all trigger_ghost_hurt with trigger_hurt, blocking ghost spawns from dying.");
-	HookConVarChange(ER_hKillParachutist,ER_ConVarChange);
-	HookConVarChange(ER_hReplaceGhostHurt,ER_ConVarChange);
-	
-	ER_ConVarChange(INVALID_HANDLE, "", "");
-	
+	ER_hKillParachutist = CreateConVarEx("remove_parachutist", "1", "Removes the parachutist from c3m2", _, true, 0.0, true, 1.0);
+	ER_hReplaceGhostHurt = CreateConVarEx( \
+		"disable_ghost_hurt", \
+		"0", \
+		"Replaces all trigger_ghost_hurt with trigger_hurt, blocking ghost spawns from dying.", \
+		_, true, 0.0, true, 1.0 \
+	);
+
+	ER_bKillParachutist = ER_hKillParachutist.BoolValue;
+	ER_bReplaceGhostHurt = ER_hReplaceGhostHurt.BoolValue;
+
+	ER_hKillParachutist.AddChangeHook(ER_ConVarChange);
+	ER_hReplaceGhostHurt.AddChangeHook(ER_ConVarChange);
+
 	ER_KV_Load();
-	
+
 	RegAdminCmd("confogl_erdata_reload", ER_KV_CmdReload, ADMFLAG_CONFIG);
+
+	HookEvent("round_start", ER_RoundStart_Event, EventHookMode_PostNoCopy);
 }
 
-public ER_OnModuleEnd()
+public void ER_ConVarChange(ConVar hConvar, const char[] sOldValue, const char[] sNewValue)
+{
+	ER_bKillParachutist = ER_hKillParachutist.BoolValue;
+	ER_bReplaceGhostHurt = ER_hReplaceGhostHurt.BoolValue;
+}
+
+void ER_OnModuleEnd()
 {
 	ER_KV_Close();
 }
 
-public ER_ConVarChange(Handle:convar, const String:oldValue[], const String:newValue[])
+static void ER_KV_Close()
 {
-	ER_bKillParachutist = GetConVarBool(ER_hKillParachutist);
-	ER_bReplaceGhostHurt = GetConVarBool(ER_hReplaceGhostHurt);
+	if (kERData != null) {
+		delete kERData;
+		kERData = null;
+	}
 }
 
-ER_KV_Close()
+static void ER_KV_Load()
 {
-	if(kERData == INVALID_HANDLE) return;
-	CloseHandle(kERData);
-	kERData = INVALID_HANDLE;
-}
+	char sNameBuff[PLATFORM_MAX_PATH], sDescBuff[256], sValBuff[32];
 
-ER_KV_Load()
-{
-	decl String:sNameBuff[PLATFORM_MAX_PATH], String:sDescBuff[256], String:sValBuff[32];
-	
-	if(DEBUG_ER || IsDebugEnabled())
+	if (DEBUG_ER || IsDebugEnabled()) {
 		LogMessage("[ER] Loading EntityRemover KeyValues");
-		
-	kERData = CreateKeyValues("EntityRemover");
+	}
+
+	kERData = new KeyValues("EntityRemover");
+
 	BuildConfigPath(sNameBuff, sizeof(sNameBuff), "entityremove.txt"); //Build our filepath
-	if (!FileToKeyValues(kERData, sNameBuff))
-	{
+
+	if (!kERData.ImportFromFile(sNameBuff)) {
 		LogError("[ER] Couldn't load EntityRemover data!");
 		ER_KV_Close();
-		return;	
+		return;
 	}
-	
+
 	// Create cvars for all entity removes
-	if(DEBUG_ER || IsDebugEnabled())
+	if (DEBUG_ER || IsDebugEnabled()) {
 		LogMessage("[ER] Creating entry CVARs");
-	
-	KvGotoFirstSubKey(kERData);
-	do
-	{
-			KvGotoFirstSubKey(kERData);
-			do
-			{
-				KvGetString(kERData, "cvar", sNameBuff, sizeof(sNameBuff));
-				KvGetString(kERData, "cvar_desc", sDescBuff, sizeof(sDescBuff));
-				KvGetString(kERData, "cvar_val", sValBuff, sizeof(sValBuff));
-				CreateConVarEx(sNameBuff, sValBuff, sDescBuff);
-				if(DEBUG_ER || IsDebugEnabled())
-					LogMessage("[ER] Creating CVAR %s", sNameBuff);
-				
-			} while(KvGotoNextKey(kERData));
-			KvGoBack(kERData);
-	} while(KvGotoNextKey(kERData));
-	KvRewind(kERData);
+	}
+
+	kERData.GotoFirstSubKey();
+
+	do {
+		kERData.GotoFirstSubKey();
+
+		do {
+			kERData.GetString("cvar", sNameBuff, sizeof(sNameBuff));
+			kERData.GetString("cvar_desc", sDescBuff, sizeof(sDescBuff));
+			kERData.GetString("cvar_val", sValBuff, sizeof(sValBuff));
+
+			CreateConVarEx(sNameBuff, sValBuff, sDescBuff);
+
+			if (DEBUG_ER || IsDebugEnabled()) {
+				LogMessage("[ER] Creating CVAR %s", sNameBuff);
+			}
+
+		} while(kERData.GotoNextKey());
+
+		kERData.GoBack();
+	} while(kERData.GotoNextKey());
+
+	kERData.Rewind();
 }
 
-
-public Action:ER_KV_CmdReload(client, args)
+public Action ER_KV_CmdReload(int client, int args)
 {
-	if (!IsPluginEnabled()) return Plugin_Continue;
-	
+	if (!IsPluginEnabled()) {
+		return Plugin_Continue;
+	}
+
 	ReplyToCommand(client, "[ER] Reloading EntityRemoveData");
 	ER_KV_Reload();
+
 	return Plugin_Handled;
 }
 
-ER_KV_Reload()
+static void ER_KV_Reload()
 {
 	ER_KV_Close();
-	ER_KV_Load();	
+	ER_KV_Load();
 }
 
-bool:ER_KV_TestCondition(lhsval, rhsval, condition)
+static bool ER_KV_TestCondition(int lhsval, int rhsval, int condition)
 {
-	switch(condition)
-	{
-		case ER_KV_CONDITION_EQUAL:
-		{
-			return lhsval == rhsval;
+	switch (condition) {
+		case ER_KV_CONDITION_EQUAL: {
+			return (lhsval == rhsval);
 		}
-		case ER_KV_CONDITION_NEQUAL:
-		{
-			return lhsval != rhsval;
+		case ER_KV_CONDITION_NEQUAL: {
+			return (lhsval != rhsval);
 		}
-		case ER_KV_CONDITION_LESS:
-		{
-			return lhsval < rhsval;
+		case ER_KV_CONDITION_LESS: {
+			return (lhsval < rhsval);
 		}
-		case ER_KV_CONDITION_GREAT:
-		{
-			return lhsval > rhsval;
+		case ER_KV_CONDITION_GREAT: {
+			return (lhsval > rhsval);
 		}
 	}
+
 	return false;
 }
 
-bool:ER_KV_TestConditionFloat(Float:lhsval, Float:rhsval, condition)
+static bool ER_KV_TestConditionFloat(float lhsval, float rhsval, int condition)
 {
-	switch(condition)
-	{
-		case ER_KV_CONDITION_EQUAL:
-		{
-			return lhsval == rhsval;
+	switch (condition) {
+		case ER_KV_CONDITION_EQUAL: {
+			return (lhsval == rhsval);
 		}
-		case ER_KV_CONDITION_NEQUAL:
-		{
-			return lhsval != rhsval;
+		case ER_KV_CONDITION_NEQUAL: {
+			return (lhsval != rhsval);
 		}
-		case ER_KV_CONDITION_LESS:
-		{
-			return lhsval < rhsval;
+		case ER_KV_CONDITION_LESS: {
+			return (lhsval < rhsval);
 		}
-		case ER_KV_CONDITION_GREAT:
-		{
-			return lhsval > rhsval;
+		case ER_KV_CONDITION_GREAT: {
+			return (lhsval > rhsval);
 		}
 	}
+
 	return false;
 }
 
-bool:ER_KV_TestConditionString(String:lhsval[], String:rhsval[], condition)
+static bool ER_KV_TestConditionString(const char[] lhsval, const char[] rhsval, int condition)
 {
-	switch(condition)
-	{
-		case ER_KV_CONDITION_EQUAL:
-		{
-			return StrEqual(lhsval, rhsval);
+	switch (condition) {
+		case ER_KV_CONDITION_EQUAL: {
+			return (strcmp(lhsval, rhsval) == 0);
 		}
-		case ER_KV_CONDITION_NEQUAL:
-		{
-			return !StrEqual(lhsval, rhsval);
+		case ER_KV_CONDITION_NEQUAL: {
+			return (strcmp(lhsval, rhsval) != 0);
 		}
-		case ER_KV_CONDITION_CONTAINS:
-		{
-			return StrContains(lhsval, rhsval) != -1;
+		case ER_KV_CONDITION_CONTAINS: {
+			return (StrContains(lhsval, rhsval) != -1);
 		}
 	}
+
 	return false;
 }
 
 // Returns true if the entity is still alive (not killed)
-ER_KV_ParseEntity(Handle:kEntry, iEntity)
+static bool ER_KV_ParseEntity(KeyValues kEntry, int iEntity)
 {
-	decl String:sBuffer[64];
-	decl String:mapname[64];
+	char sBuffer[64], mapname[64];
 
 	// Check CVAR for this entry
-	KvGetString(kEntry, "cvar", sBuffer, sizeof(sBuffer));
-	if(strlen(sBuffer) && !GetConVarBool(FindConVarEx(sBuffer))) return true;
+	kEntry.GetString("cvar", sBuffer, sizeof(sBuffer));
+
+	if (strlen(sBuffer) && !(FindConVarEx(sBuffer).BoolValue)) {
+		return true;
+	}
 
 	// Check MapName for this entry
 	GetCurrentMap(mapname, sizeof(mapname));
-	KvGetString(kEntry, "map", sBuffer, sizeof(sBuffer));
-	if(strlen(sBuffer) && StrContains(sBuffer, mapname) == -1)
-			return true;
 
-	KvGetString(kEntry, "excludemap", sBuffer, sizeof(sBuffer));
-	if(strlen(sBuffer) && StrContains(sBuffer, mapname) != -1)
-			return true;
-	
+	kEntry.GetString("map", sBuffer, sizeof(sBuffer));
+	if (strlen(sBuffer) && StrContains(sBuffer, mapname) == -1) {
+		return true;
+	}
+
+	kEntry.GetString("excludemap", sBuffer, sizeof(sBuffer));
+	if (strlen(sBuffer) && StrContains(sBuffer, mapname) != -1) {
+		return true;
+	}
+
 	// Do property check for this entry
-	KvGetString(kEntry, "property", sBuffer, sizeof(sBuffer));
-	if(strlen(sBuffer))
-	{
-		new proptype = KvGetNum(kEntry, "proptype");
-		
-		switch(proptype)
-		{
-			case ER_KV_PROPTYPE_INT, ER_KV_PROPTYPE_BOOL:
-			{
-				new rhsval = KvGetNum(kEntry, "propval");
-				new lhsval = GetEntProp(iEntity, PropType:KvGetNum(kEntry, "propdata"), sBuffer);
-				if(!ER_KV_TestCondition(lhsval, rhsval, KvGetNum(kEntry, "condition"))) return true;
+	kEntry.GetString("property", sBuffer, sizeof(sBuffer));
+	if (strlen(sBuffer)) {
+		int proptype = kEntry.GetNum("proptype");
+
+		switch (proptype) {
+			case ER_KV_PROPTYPE_INT, ER_KV_PROPTYPE_BOOL: {
+				int rhsval = kEntry.GetNum("propval");
+				PropType prop_type = view_as<PropType>(kEntry.GetNum("propdata"));
+				int lhsval = GetEntProp(iEntity, prop_type, sBuffer);
+
+				if (!ER_KV_TestCondition(lhsval, rhsval, kEntry.GetNum("condition"))) {
+					return true;
+				}
 			}
-			case ER_KV_PROPTYPE_FLOAT:
-			{
-				new Float:rhsval = KvGetFloat(kEntry, "propval");
-				new Float:lhsval = GetEntPropFloat(iEntity, PropType:KvGetNum(kEntry, "propdata"), sBuffer);
-				if(!ER_KV_TestConditionFloat(lhsval, rhsval, KvGetNum(kEntry, "condition"))) return true;
+			case ER_KV_PROPTYPE_FLOAT: {
+				float rhsval = kEntry.GetFloat("propval");
+				PropType prop_type = view_as<PropType>(kEntry.GetNum("propdata"));
+				float lhsval = GetEntPropFloat(iEntity, prop_type, sBuffer);
+
+				if (!ER_KV_TestConditionFloat(lhsval, rhsval, kEntry.GetNum("condition"))) {
+					return true;
+				}
 			}
-			case ER_KV_PROPTYPE_STRING:
-			{
-				decl String:rhsval[64], String:lhsval[64];
-				KvGetString(kEntry, "propval", rhsval, sizeof(rhsval));
-				GetEntPropString(iEntity, PropType:KvGetNum(kEntry, "propdata"), sBuffer, lhsval, sizeof(lhsval));
-				if(!ER_KV_TestConditionString(lhsval, rhsval, KvGetNum(kEntry, "condition"))) return true;
+			case ER_KV_PROPTYPE_STRING: {
+				char rhsval[64], lhsval[64];
+				kEntry.GetString("propval", rhsval, sizeof(rhsval));
+				PropType prop_type = view_as<PropType>(kEntry.GetNum("propdata"));
+				GetEntPropString(iEntity, prop_type, sBuffer, lhsval, sizeof(lhsval));
+
+				if (!ER_KV_TestConditionString(lhsval, rhsval, kEntry.GetNum("condition"))) {
+					return true;
+				}
 			}
 		}
 	}
-	return ER_KV_TakeAction(KvGetNum(kEntry, "action"), iEntity);
 
+	int iAction = kEntry.GetNum("action");
+	return (ER_KV_TakeAction(iAction, iEntity));
 }
 
 // Returns true if the entity is still alive (not killed)
-ER_KV_TakeAction(action, iEntity)
+static bool ER_KV_TakeAction(int action, int iEntity)
 {
-	switch(action)
-	{
-		case ER_KV_ACTION_KILL:
-		{
-			if(DEBUG_ER || IsDebugEnabled())
+	switch (action) {
+		case ER_KV_ACTION_KILL: {
+			if (DEBUG_ER || IsDebugEnabled()) {
 				LogMessage("[ER]     Killing!");
-			
+			}
+
 			KillEntity(iEntity);
+
 			return false;
 		}
-		default:
-		{
+		default: {
 			LogError("[ER] ParseEntity Encountered bad action!");
 		}
 	}
+
 	return true;
 }
 
-bool:ER_KillParachutist(ent)
+static bool ER_KillParachutist(int ent)
 {
-	decl String:buf[32];
+	char buf[32];
 	GetCurrentMap(buf, sizeof(buf));
-	if (StrEqual(buf, "c3m2_swamp"))
-	{
+
+	if (strcmp(buf, "c3m2_swamp") == 0) {
 		GetEntPropString(ent, Prop_Data, "m_iName", buf, sizeof(buf));
-		if(!strncmp(buf, "parachute_", 10))
-		{
+
+		if (!strncmp(buf, "parachute_", 10)) {
 			KillEntity(ent);
+
 			return true;
 		}
 	}
+
 	return false;
 }
 
-bool:ER_ReplaceTriggerHurtGhost(ent)
+static bool ER_ReplaceTriggerHurtGhost(int ent)
 {
-	decl String:buf[MAX_ENTITY_NAME_LENGTH];
+	char buf[MAX_ENTITY_NAME_LENGTH];
 	GetEdictClassname(ent, buf, sizeof(buf));
-	if (StrEqual(buf, "trigger_hurt_ghost"))
-	{
+
+	if (strcmp(buf, "trigger_hurt_ghost") == 0) {
 		// Replace trigger_hurt_ghost with trigger_hurt
-		new replace = CreateEntityByName("trigger_hurt");
-		if (replace == -1) 
-		{
+		int replace = CreateEntityByName("trigger_hurt");
+		if (replace == -1) {
 			LogError("[ER] Could not create trigger_hurt entity!");
 			return false;
 		}
-		
+
 		// Get modelname
-		decl String:model[16];
+		char model[PLATFORM_MAX_PATH];
 		GetEntPropString(ent, Prop_Data, "m_ModelName", model, sizeof(model));
-		
+
 		// Get position and rotation
-		decl Float:pos[3], Float:ang[3];
+		float pos[3], ang[3];
 		GetEntPropVector(ent, Prop_Send, "m_vecOrigin", pos);
 		GetEntPropVector(ent, Prop_Send, "m_angRotation", ang);
 
@@ -307,9 +331,9 @@ bool:ER_ReplaceTriggerHurtGhost(ent)
 		DispatchKeyValue(replace, "damagecap", "10000");
 		DispatchKeyValue(replace, "damage", "10000");
 		DispatchKeyValue(replace, "model", model);
-		
+
 		DispatchKeyValue(replace, "filtername", "filter_infected");
-		
+
 		// Spawn the new one
 		TeleportEntity(replace, pos, ang, NULL_VECTOR);
 		DispatchSpawn(replace);
@@ -321,48 +345,57 @@ bool:ER_ReplaceTriggerHurtGhost(ent)
 	return false;
 }
 
-public Action:ER_RoundStart_Event(Handle:event, const String:name[], bool:dontBroadcast)
+public void ER_RoundStart_Event(Event hEvent, const char[] sEventName, bool bdontBroadcast)
 {
-	CreateTimer(0.3,  ER_RoundStart_Timer);
+	if (!IsPluginEnabled()) {
+		return;
+	}
+
+	CreateTimer(0.3, ER_RoundStart_Timer, _, TIMER_FLAG_NO_MAPCHANGE);
 }
 
-public Action:ER_RoundStart_Timer(Handle:timer)
+public Action ER_RoundStart_Timer(Handle hTimer)
 {
-	if (!IsPluginEnabled()) return;
-	
-	decl String:sBuffer[MAX_ENTITY_NAME_LENGTH];
-	if(DEBUG_ER || IsDebugEnabled())
+	char sBuffer[MAX_ENTITY_NAME_LENGTH];
+	if (DEBUG_ER || IsDebugEnabled()) {
 		LogMessage("[ER] Starting RoundStart Event");
-	
-	if(kERData != INVALID_HANDLE) KvRewind(kERData);
-	
-	new iEntCount = GetEntityCount();
+	}
 
-	for (new ent = (MaxClients + 1); ent <= iEntCount; ent++)
-	{
-		if (IsValidEdict(ent))
-		{
-			GetEdictClassname(ent, sBuffer, sizeof(sBuffer));
-			if (ER_bKillParachutist && ER_KillParachutist(ent))
-			{
+	if (kERData != null) {
+		kERData.Rewind();
+	}
+
+	int iEntCount = GetEntityCount();
+
+	for (int ent = (MaxClients + 1); ent <= iEntCount; ent++) {
+		if (!IsValidEdict(ent)) {
+			continue;
+		}
+
+		GetEdictClassname(ent, sBuffer, sizeof(sBuffer));
+
+		if (ER_bKillParachutist && ER_KillParachutist(ent)) {
+			//empty
+		} else if (ER_bReplaceGhostHurt && ER_ReplaceTriggerHurtGhost(ent)) {
+			//empty
+		} else if (kERData != null && kERData.JumpToKey(sBuffer)) {
+			if (DEBUG_ER || IsDebugEnabled()) {
+				LogMessage("[ER] Dealing with an instance of %s", sBuffer);
 			}
-			else if (ER_bReplaceGhostHurt, ER_ReplaceTriggerHurtGhost(ent))
-			{
-			}
-			else if (kERData != INVALID_HANDLE && KvJumpToKey(kERData, sBuffer))
-			{
-				if(DEBUG_ER || IsDebugEnabled())
-					LogMessage("[ER] Dealing with an instance of %s", sBuffer);
-				
-				KvGotoFirstSubKey(kERData);
-				do
-				{
-					// Parse each entry for this entity's classname
-					// Stop if we run out of entries or we have killed the entity
-					if(!ER_KV_ParseEntity(kERData, ent)) break;	
-				} while (KvGotoNextKey(kERData));
-				KvRewind(kERData);
-			}
+
+			kERData.GotoFirstSubKey();
+
+			do {
+				// Parse each entry for this entity's classname
+				// Stop if we run out of entries or we have killed the entity
+				if (!ER_KV_ParseEntity(kERData, ent)) {
+					break;
+				}
+			} while (kERData.GotoNextKey());
+
+			kERData.Rewind();
 		}
 	}
+
+	return Plugin_Stop;
 }
