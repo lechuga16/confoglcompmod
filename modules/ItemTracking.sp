@@ -251,7 +251,7 @@ static KillRegisteredItems()
 
 	for(new i = (MaxClients + 1); i <= psychonic; i++)
 	{
-		if(IsValidEntity(i))
+		if (IsValidEdict(i))
 		{
 			itemindex = GetItemIndexFromEntity(i);
 			if(itemindex >= 0 /* && !IsEntityInSaferoom(i) */ )
@@ -321,7 +321,7 @@ static EnumerateSpawns()
 
 	for(new i = (MaxClients + 1); i <= psychonic; i++)
 	{
-		if(IsValidEntity(i))
+		if (IsValidEdict(i))
 		{
 			itemindex = GetItemIndexFromEntity(i);
 			if(itemindex >= 0 /* && !IsEntityInSaferoom(i) */ )
@@ -410,7 +410,7 @@ static RemoveToLimits()
 					LogMessage("[IT] Killing randomly chosen %s (%d) #%d", g_sItemNames[itemidx][IN_longname], itemidx, killidx);
 				}
 				GetArrayArray(g_hItemSpawns[itemidx], killidx, curitem[0]);
-				if (IsValidEntity(curitem[IT_entity])) {
+				if (IsValidEdict(curitem[IT_entity])) {
 					KillEntity(curitem[IT_entity]);
 					/*if (!AcceptEntityInput(curitem[IT_entity], "kill")) {
 						LogError("[IT] Error killing instance of item %s", g_sItemNames[itemidx][IN_longname]);

@@ -1236,9 +1236,11 @@ public Action:WI_RoundStartLoop(Handle:timer)
 	decl iEntity, entcount, String:entclass[MAX_ENTITY_NAME_LENGTH], iWeaponIndex;
 	entcount = GetEntityCount();
 
-	for(iEntity = (MaxClients + 1); iEntity <= entcount; iEntity++)
-	{
-		if(!IsValidEdict(iEntity) || !IsValidEntity(iEntity)){continue;}
+	for (iEntity = (MaxClients + 1); iEntity <= entcount; iEntity++) {
+		if (!IsValidEdict(iEntity)) {
+			continue;
+		}
+
 		GetEdictClassname(iEntity, entclass, sizeof(entclass));
 		
 		iWeaponIndex = WI_GetWeaponIndex(iEntity,entclass);

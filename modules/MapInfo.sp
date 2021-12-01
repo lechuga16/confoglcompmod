@@ -249,11 +249,14 @@ static stock Float:FindStartPointHeuristic(Float:result[3])
 	new entcount = GetEntityCount();
 	decl String:entclass[MAX_ENTITY_NAME_LENGTH];
 
-	for(new iEntity = (MaxClients + 1); iEntity <= entcount && kits < 4; iEntity++)
+	for (new iEntity = (MaxClients + 1); iEntity <= entcount && kits < 4; iEntity++)
 	{
-		if(!IsValidEdict(iEntity) || !IsValidEntity(iEntity)){continue;}
-		GetEdictClassname(iEntity,entclass,sizeof(entclass));
-		if(StrEqual(entclass, "weapon_first_aid_kit_spawn"))
+		if (!IsValidEdict(iEntity)) {
+			continue;
+		}
+
+		GetEdictClassname(iEntity, entclass, sizeof(entclass));
+		if (StrEqual(entclass, "weapon_first_aid_kit_spawn"))
 		{
 			GetEntPropVector(iEntity, Prop_Send, "m_vecOrigin", kitOrigin[kits]);
 			AddToVector(averageOrigin, kitOrigin[kits]);
