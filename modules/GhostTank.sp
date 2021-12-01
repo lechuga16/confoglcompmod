@@ -3,63 +3,79 @@
 #endif
 #define __ghost_tank_included
 
-#define 		ZOMBIECLASS_TANK						8
+#define ZOMBIECLASS_TANK			8
+#define THROWRANGE					99999999.0
+#define FIREIMMUNITY_TIME			5.0
+#define NCAPHEALTH					300
 
-const 	Float:	THROWRANGE 								= 99999999.0;
-const 	Float:	FIREIMMUNITY_TIME 						= 5.0;
-const 			INCAPHEALTH 							= 300;
+static int
+	g_iPasses = 0,
+	g_iGT_TankClient = 0;
 
-new 	Handle:	g_hGT_Enabled;
-new 			g_iGT_TankClient;
-new 	bool:	g_bGT_TankIsInPlay;
-new 	bool:	g_bGT_TankHasFireImmunity;
-new		Handle: g_hGT_TankDeathTimer=INVALID_HANDLE;
+static bool
+	g_bGT_FinaleVehicleIncoming = false,
+	g_bGT_TankIsInPlay = false,
+	g_bGT_TankHasFireImmunity = false,
+	g_bGT_HordesDisabled = false;
 
-new		Handle:	g_hGT_RemoveEscapeTank;
-new		bool:	g_bGT_FinaleVehicleIncoming;
+static Handle
+	g_hGT_TankDeathTimer = null;
 
-new		Handle:	g_hGT_BlockPunchRock;
+static ConVar
+	g_hGT_Enabled = null,
+	g_hCvarTankThrowAllowRange = null,
+	g_hCvarDirectorTankLotterySelectionTime = null,
+	g_hCvarZMobSpawnMinIntervalNormal = null,
+	g_hCvarZMobSpawnMaxIntervalNormal = null,
+	g_hCvarMobSpawnMinSize = null,
+	g_hCvarMobSpawnMaxSize = null,
+	g_hGT_RemoveEscapeTank = null,
+	g_hGT_BlockPunchRock = null,
+	g_hGT_DisableTankHordes = null; // Disable Tank Hordes items
 
-new passes;
-
-// Disable Tank Hordes items
-static	Handle: g_hGT_DisableTankHordes;
-static 	bool:	g_bGT_HordesDisabled;
-
-GT_OnModuleStart()
+void GT_OnModuleStart()
 {
-	g_hGT_Enabled = CreateConVarEx("boss_tank", "1", "Tank can't be prelight, frozen and ghost until player takes over, punch fix, and no rock throw for AI tank while waiting for player");
-	g_hGT_RemoveEscapeTank = CreateConVarEx("remove_escape_tank", "1", "Remove tanks that spawn as the rescue vehicle is incoming on finales.");
-	g_hGT_DisableTankHordes = CreateConVarEx("disable_tank_hordes", "0", "Disable natural hordes while tanks are in play");
-	g_hGT_BlockPunchRock = CreateConVarEx("block_punch_rock", "0", "Block tanks from punching and throwing a rock at the same time");
-	
+	g_hGT_Enabled = CreateConVarEx( \
+		"boss_tank", \
+		"1", \
+		"Tank can't be prelight, frozen and ghost until player takes over, punch fix, and no rock throw for AI tank while waiting for player", \
+		_, true, 0.0, true, 1.0 \
+	);
+
+	g_hGT_RemoveEscapeTank = CreateConVarEx("remove_escape_tank", "1", "Remove tanks that spawn as the rescue vehicle is incoming on finales.", _, true, 0.0, true, 1.0);
+	g_hGT_DisableTankHordes = CreateConVarEx("disable_tank_hordes", "0", "Disable natural hordes while tanks are in play", _, true, 0.0, true, 1.0);
+	g_hGT_BlockPunchRock = CreateConVarEx("block_punch_rock", "0", "Block tanks from punching and throwing a rock at the same time", _, true, 0.0, true, 1.0);
+
+	g_hCvarTankThrowAllowRange = FindConVar("tank_throw_allow_range");
+	g_hCvarDirectorTankLotterySelectionTime = FindConVar("director_tank_lottery_selection_time");
+	g_hCvarZMobSpawnMinIntervalNormal = FindConVar("z_mob_spawn_min_interval_normal");
+	g_hCvarZMobSpawnMaxIntervalNormal = FindConVar("z_mob_spawn_max_interval_normal");
+	g_hCvarMobSpawnMinSize = FindConVar("z_mob_spawn_min_size");
+	g_hCvarMobSpawnMaxSize = FindConVar("z_mob_spawn_max_size");
+
+	HookEvent("round_start", GT_RoundStart, EventHookMode_PostNoCopy);
 	HookEvent("tank_spawn", GT_TankSpawn);
-	HookEvent("player_death",GT_TankKilled);
-	HookEvent("player_hurt",GT_TankOnFire);
-	HookEvent("round_start",GT_RoundStart);
+	HookEvent("player_death", GT_TankKilled);
+	HookEvent("player_hurt", GT_TankOnFire);
 	HookEvent("item_pickup", GT_ItemPickup);
 	HookEvent("player_incapacitated", GT_PlayerIncap);
-	HookEvent("finale_vehicle_incoming", GT_FinaleVehicleIncoming);
+	HookEvent("finale_vehicle_incoming", GT_FinaleVehicleIncoming, EventHookMode_PostNoCopy);
 }
 
-// For other modules to use
-stock bool GT_IsTankInPlay()
+Action GT_OnTankSpawn_Forward()
 {
-	return (g_bGT_TankIsInPlay);
-}
-
-Action:GT_OnTankSpawn_Forward()
-{
-	if(IsPluginEnabled() && GetConVarBool(g_hGT_RemoveEscapeTank) && g_bGT_FinaleVehicleIncoming)
+	if (IsPluginEnabled() && g_hGT_RemoveEscapeTank.BoolValue && g_bGT_FinaleVehicleIncoming) {
 		return Plugin_Handled;
+	}
+
 	return Plugin_Continue;
 }
 
-Action:GT_OnCThrowActivate()
+Action GT_OnCThrowActivate()
 {
 	if (IsPluginEnabled()
 		&& g_bGT_TankIsInPlay
-		&& GetConVarBool(g_hGT_BlockPunchRock)
+		&& g_hGT_BlockPunchRock.BoolValue
 		&& GetClientButtons(g_iGT_TankClient) & IN_ATTACK
 	) {
 		if (IsDebugEnabled()) {
@@ -72,230 +88,252 @@ Action:GT_OnCThrowActivate()
 	return Plugin_Continue;
 }
 
-Action:GT_OnSpawnMob_Forward(&amount)
+Action GT_OnSpawnMob_Forward(int &amount)
 {
 	// quick fix. needs normalize_hordes 1
-	if(IsPluginEnabled())
-	{
-		if(IsDebugEnabled())
-		{
-			LogMessage("[GT] SpawnMob(%d), HordesDisabled: %d TimerDuration: %f Minimum: %f Remaining: %f", 
-			amount, g_bGT_HordesDisabled, L4D2_CTimerGetCountdownDuration(L4D2CT_MobSpawnTimer), 
-			GetConVarFloat(FindConVar("z_mob_spawn_min_interval_normal")), L4D2_CTimerGetRemainingTime(L4D2CT_MobSpawnTimer));
+	if (IsPluginEnabled()) {
+		if (IsDebugEnabled()) {
+			LogMessage("[GT] SpawnMob(%d), HordesDisabled: %d TimerDuration: %f Minimum: %f Remaining: %f", \
+							amount, g_bGT_HordesDisabled, L4D2_CTimerGetCountdownDuration(L4D2CT_MobSpawnTimer), \
+								g_hCvarZMobSpawnMinIntervalNormal.FloatValue, L4D2_CTimerGetRemainingTime(L4D2CT_MobSpawnTimer));
 		}
-		if(g_bGT_HordesDisabled)
-		{
-			static Handle:mob_spawn_interval_min, Handle:mob_spawn_interval_max, Handle:mob_spawn_size_min, Handle:mob_spawn_size_max;
-			if(mob_spawn_interval_min == INVALID_HANDLE)
-			{
-				mob_spawn_interval_min = FindConVar("z_mob_spawn_min_interval_normal");
-				mob_spawn_interval_max = FindConVar("z_mob_spawn_max_interval_normal");
-				mob_spawn_size_min = FindConVar("z_mob_spawn_min_size");
-				mob_spawn_size_max = FindConVar("z_mob_spawn_max_size");
-			}
-			
-			new minsize = GetConVarInt(mob_spawn_size_min), maxsize = GetConVarInt(mob_spawn_size_max);
-			if (amount < minsize || amount > maxsize)
-			{
+
+		if (g_bGT_HordesDisabled) {
+			if (amount < g_hCvarMobSpawnMinSize.IntValue || amount > g_hCvarMobSpawnMaxSize.IntValue) {
 				return Plugin_Continue;
 			}
-			if (!L4D2_CTimerIsElapsed(L4D2CT_MobSpawnTimer))
-			{
+
+			if (!L4D2_CTimerIsElapsed(L4D2CT_MobSpawnTimer)) {
 				return Plugin_Continue;
 			}
-			
-			new Float:duration = L4D2_CTimerGetCountdownDuration(L4D2CT_MobSpawnTimer);
-			if (duration < GetConVarFloat(mob_spawn_interval_min) || duration > GetConVarFloat(mob_spawn_interval_max))
-			{
+
+			float duration = L4D2_CTimerGetCountdownDuration(L4D2CT_MobSpawnTimer);
+			if (duration < g_hCvarZMobSpawnMinIntervalNormal.FloatValue || duration > g_hCvarZMobSpawnMaxIntervalNormal.FloatValue) {
 				return Plugin_Continue;
 			}
-			
+
 			return Plugin_Handled;
 		}
 	}
+
 	return Plugin_Continue;
 }
 
 // Disable stasis when we're using GhostTank
-Action:GT_OnTryOfferingTankBot(&bool:enterStasis)
+Action GT_OnTryOfferingTankBot(bool &enterStasis)
 {
-	passes++;
-	if(IsPluginEnabled())
-	{
-		if(GetConVarBool(g_hGT_Enabled)) enterStasis=false;
-		if(GetConVarBool(g_hGT_RemoveEscapeTank) && g_bGT_FinaleVehicleIncoming) return Plugin_Handled;
+	g_iPasses++;
+
+	if (IsPluginEnabled()) {
+		if (g_hGT_Enabled.BoolValue) {
+			enterStasis = false;
+		}
+
+		if (g_hGT_RemoveEscapeTank.BoolValue && g_bGT_FinaleVehicleIncoming) {
+			return Plugin_Handled;
+		}
 	}
+
 	return Plugin_Continue;
 }
 
-public GT_FinaleVehicleIncoming(Handle:event, const String:name[], bool:dontBroadcast)
+public void GT_FinaleVehicleIncoming(Event hEvent, const char[] sEventName, bool bDontBroadcast)
 {
 	g_bGT_FinaleVehicleIncoming = true;
-	if(g_bGT_TankIsInPlay && IsFakeClient(g_iGT_TankClient))
-	{
+
+	if (g_bGT_TankIsInPlay && IsFakeClient(g_iGT_TankClient)) {
 		KickClient(g_iGT_TankClient);
 		GT_Reset();
 	}
 }
 
-public GT_ItemPickup(Handle:event, const String:name[], bool:dontBroadcast)
+public void GT_ItemPickup(Event hEvent, const char[] sEventName, bool bDontBroadcast)
 {
-	if (!g_bGT_TankIsInPlay) return;
+	if (!g_bGT_TankIsInPlay) {
+		return;
+	}
 
-	decl String:item[64];
-	GetEventString(event, "item", item, sizeof(item));
+	char item[MAX_ENTITY_NAME_LENGTH];
+	hEvent.GetString("item", item, sizeof(item));
 
-	if (StrEqual(item, "tank_claw")) 
-	{
-		g_iGT_TankClient = GetClientOfUserId(GetEventInt(event, "userid"));
-		if(g_hGT_TankDeathTimer != INVALID_HANDLE)
-		{
-			KillTimer(g_hGT_TankDeathTimer);
-			g_hGT_TankDeathTimer = INVALID_HANDLE;
-		}
+	if (strcmp(item, "tank_claw") != 0) {
+		return;
+	}
+
+	g_iGT_TankClient = GetClientOfUserId(hEvent.GetInt("userid"));
+
+	if (g_hGT_TankDeathTimer != null) {
+		KillTimer(g_hGT_TankDeathTimer);
+		g_hGT_TankDeathTimer = null;
 	}
 }
 
-static DisableNaturalHordes()
-{
-	// 0x7fff = 16 bit signed max value. Over 9 hours.
-	g_bGT_HordesDisabled = true;
-}
-
-static EnableNaturalHordes()
-{
-	g_bGT_HordesDisabled = false;
-}
-
-public GT_RoundStart(Handle:event, const String:name[], bool:dontBroadcast)
+public void GT_RoundStart(Event hEvent, const char[] sEventName, bool bDontBroadcast)
 {
 	g_bGT_FinaleVehicleIncoming = false;
 	GT_Reset();
 }
 
-public GT_TankKilled(Handle:event, const String:name[], bool:dontBroadcast)
+public void GT_TankKilled(Event hEvent, const char[] sEventName, bool bDontBroadcast)
 {
-	if(!g_bGT_TankIsInPlay) return;
-	new client = GetClientOfUserId(GetEventInt(event, "userid"));
-	if(client != g_iGT_TankClient) return;
-	g_hGT_TankDeathTimer = CreateTimer(1.0,GT_TankKilled_Timer);
+	if (!g_bGT_TankIsInPlay) {
+		return;
+	}
+
+	int client = GetClientOfUserId(hEvent.GetInt("userid"));
+	if (client != g_iGT_TankClient) {
+		return;
+	}
+
+	g_hGT_TankDeathTimer = CreateTimer(1.0, GT_TankKilled_Timer);
 }
 
-public GT_TankSpawn(Handle:event, const String:name[], bool:dontBroadcast)
+public void GT_TankSpawn(Event hEvent, const char[] sEventName, bool bDontBroadcast)
 {
-	new client = GetClientOfUserId(GetEventInt(event, "userid"));
+	int client = GetClientOfUserId(hEvent.GetInt("userid"));
 	g_iGT_TankClient = client;
 
-	if(g_bGT_TankIsInPlay) return;
+	if (g_bGT_TankIsInPlay) {
+		return;
+	}
 
 	g_bGT_TankIsInPlay = true;
 
-	if(GetConVarBool(g_hGT_DisableTankHordes))
-	{
-		DisableNaturalHordes();
+	if (g_hGT_DisableTankHordes.BoolValue) {
+		g_bGT_HordesDisabled = true;
 	}
 
-	if(!IsPluginEnabled() || !GetConVarBool(g_hGT_Enabled)) return;
+	if (!IsPluginEnabled() || !g_hGT_Enabled.BoolValue) {
+		return;
+	}
 
-	new Float:fFireImmunityTime = FIREIMMUNITY_TIME;
-	new Float:fSelectionTime = GetConVarFloat(FindConVar("director_tank_lottery_selection_time"));
+	float fFireImmunityTime = FIREIMMUNITY_TIME;
+	float fSelectionTime = g_hCvarDirectorTankLotterySelectionTime.FloatValue;
 
-	if(IsFakeClient(client))
-	{
+	if (IsFakeClient(client)) {
 		GT_PauseTank();
-		CreateTimer(fSelectionTime,GT_ResumeTankTimer);
+		CreateTimer(fSelectionTime, GT_ResumeTankTimer);
 		fFireImmunityTime += fSelectionTime;
 	}
 
-	CreateTimer(fFireImmunityTime,GT_FireImmunityTimer);
+	CreateTimer(fFireImmunityTime, GT_FireImmunityTimer);
 }
 
-public GT_TankOnFire(Handle:event, const String:name[], bool:dontBroadcast)
+public void GT_TankOnFire(Event hEvent, const char[] sEventName, bool bDontBroadcast)
 {
-	if(!g_bGT_TankIsInPlay || !g_bGT_TankHasFireImmunity || !IsPluginEnabled() || !GetConVarBool(g_hGT_Enabled)) return;
+	if (!g_bGT_TankIsInPlay || !g_bGT_TankHasFireImmunity || !IsPluginEnabled() || !g_hGT_Enabled.BoolValue) {
+		return;
+	}
 
-	new client = GetClientOfUserId(GetEventInt(event, "userid"));
-	if(g_iGT_TankClient != client || !IsValidClient(client)) return;
+	int client = GetClientOfUserId(hEvent.GetInt("userid"));
+	if (client < 1 || g_iGT_TankClient != client || !IsClientInGame(client) || GetClientTeam(client) != TEAM_INFECTED) {
+		return;
+	}
 
-	new dmgtype = GetEventInt(event,"type");
+	int dmgtype = hEvent.GetInt("type");
 
-	if(dmgtype != 8) return;
+	if (dmgtype != DMG_BURN) {
+		return;
+	}
 
 	ExtinguishEntity(client);
-	new CurHealth = GetClientHealth(client);
-	new DmgDone	  = GetEventInt(event,"dmg_health");
-	SetEntityHealth(client,(CurHealth + DmgDone));
+
+	int iSetHealth = GetClientHealth(client) + hEvent.GetInt("dmg_health");
+	SetEntityHealth(client, iSetHealth);
 }
 
-public GT_PlayerIncap(Handle:event, String:event_name[], bool:dontBroadcast)
+public void GT_PlayerIncap(Event hEvent, const char[] sEventName, bool bDontBroadcast)
 {
-	if(!g_bGT_TankIsInPlay || !IsPluginEnabled() || !GetConVarBool(g_hGT_Enabled)) return;
+	if (!g_bGT_TankIsInPlay || !IsPluginEnabled() || !g_hGT_Enabled.BoolValue) {
+		return;
+	}
 
-	decl String:weapon[16];
-	GetEventString(event, "weapon", weapon, 16);
+	char weapon[MAX_ENTITY_NAME_LENGTH];
+	hEvent.GetString("weapon", weapon, sizeof(weapon));
 
-	if(!StrEqual(weapon, "tank_claw")) return;
+	if (strcmp(weapon, "tank_claw") != 0) {
+		return;
+	}
 
-	new client = GetClientOfUserId(GetEventInt(event, "userid"));
-	if(!IsValidClient(client)) return;
+	int client = GetClientOfUserId(hEvent.GetInt("userid"));
+	if (client < 1 || !IsClientInGame(client) || GetClientTeam(client) != TEAM_SURVIVOR) {
+		return;
+	}
 
-	SetEntProp(client, Prop_Send, "m_isIncapacitated", 0);
+	SetEntProp(client, Prop_Send, "m_isIncapacitated", 0, 1);
 	SetEntityHealth(client, 1);
+
 	CreateTimer(0.4, GT_IncapTimer, client);
 }
 
-public Action:GT_IncapTimer(Handle:timer, any:client)
+public Action GT_IncapTimer(Handle hTimer, any client)
 {
-	SetEntProp(client, Prop_Send, "m_isIncapacitated", 1);
+	SetEntProp(client, Prop_Send, "m_isIncapacitated", 1, 1);
 	SetEntityHealth(client, INCAPHEALTH);
+
+	return Plugin_Stop;
 }
 
-public Action:GT_ResumeTankTimer(Handle:timer)
+public Action GT_ResumeTankTimer(Handle hTimer)
 {
 	GT_ResumeTank();
+
+	return Plugin_Stop;
 }
 
-public Action:GT_FireImmunityTimer(Handle:timer)
+public Action GT_FireImmunityTimer(Handle hTimer)
 {
 	g_bGT_TankHasFireImmunity = false;
+
+	return Plugin_Stop;
 }
 
-GT_PauseTank()
+static void GT_PauseTank()
 {
-	SetConVarFloat(FindConVar("tank_throw_allow_range"),THROWRANGE);
-	if(!IsValidEntity(g_iGT_TankClient)) return;
-	SetEntityMoveType(g_iGT_TankClient,MOVETYPE_NONE);
-	SetEntProp(g_iGT_TankClient,Prop_Send,"m_isGhost",1,1);
-}
+	g_hCvarTankThrowAllowRange.SetFloat(THROWRANGE);
 
-GT_ResumeTank()
-{
-	ResetConVar(FindConVar("tank_throw_allow_range"));
-	if(!IsValidEntity(g_iGT_TankClient)) return;
-	SetEntityMoveType(g_iGT_TankClient,MOVETYPE_CUSTOM);
-	SetEntProp(g_iGT_TankClient,Prop_Send,"m_isGhost",0,1);
-}
-
-GT_Reset()
-{
-	passes = 0;
-	g_hGT_TankDeathTimer = INVALID_HANDLE;
-	if(g_bGT_HordesDisabled)
-	{
-		EnableNaturalHordes();
+	if (!IsValidEntity(g_iGT_TankClient)) {
+		return;
 	}
+
+	SetEntityMoveType(g_iGT_TankClient, MOVETYPE_NONE);
+	SetEntProp(g_iGT_TankClient, Prop_Send, "m_isGhost", 1, 1);
+}
+
+static void GT_ResumeTank()
+{
+	g_hCvarTankThrowAllowRange.RestoreDefault();
+
+	if (!IsValidEntity(g_iGT_TankClient)) {
+		return;
+	}
+
+	SetEntityMoveType(g_iGT_TankClient, MOVETYPE_CUSTOM);
+	SetEntProp(g_iGT_TankClient, Prop_Send, "m_isGhost", 0, 1);
+}
+
+static void GT_Reset()
+{
+	g_iPasses = 0;
+	g_hGT_TankDeathTimer = null;
+
+	if (g_bGT_HordesDisabled) {
+		g_bGT_HordesDisabled = false;
+	}
+
 	g_bGT_TankIsInPlay = false;
 	g_bGT_TankHasFireImmunity = true;
 }
 
-public Action:GT_TankKilled_Timer(Handle:timer)
+public Action GT_TankKilled_Timer(Handle hTimer)
 {
 	GT_Reset();
+
+	return Plugin_Stop;
 }
 
-bool:IsValidClient(client)
+// For other modules to use
+stock bool GT_IsTankInPlay()
 {
-	if (client <= 0 || client > MaxClients) return false;
-	if (!IsClientInGame(client)) return false;
-	return true;
+	return (g_bGT_TankIsInPlay);
 }
