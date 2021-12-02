@@ -6,12 +6,21 @@
 #define CVARS_DEBUG			0
 #define CVS_CVAR_MAXLEN		64
 
+#if SOURCEMOD_V_MINOR > 9
+enum struct CVSEntry
+{
+	ConVar CVSE_cvar;
+	char CVSE_oldval[CVS_CVAR_MAXLEN];
+	char CVSE_newval[CVS_CVAR_MAXLEN];
+}
+#else
 enum CVSEntry
 {
 	ConVar:CVSE_cvar,
 	String:CVSE_oldval[CVS_CVAR_MAXLEN],
 	String:CVSE_newval[CVS_CVAR_MAXLEN]
 };
+#endif
 
 static bool
 	bTrackingStarted = false;
@@ -21,7 +30,11 @@ static ArrayList
 
 void CVS_OnModuleStart()
 {
+#if SOURCEMOD_V_MINOR > 9
+	CvarSettingsArray = new ArrayList(sizeof(CVSEntry));
+#else
 	CvarSettingsArray = new ArrayList(view_as<int>(CVSEntry));
+#endif
 
 	RegConsoleCmd("confogl_cvarsettings", CVS_CvarSettings_Cmd, "List all ConVars being enforced by Confogl");
 	RegConsoleCmd("confogl_cvardiff", CVS_CvarDiff_Cmd, "List any ConVars that have been changed from their initialized values");
@@ -111,8 +124,6 @@ public Action CVS_CvarSettings_Cmd(int client, int args)
 		return Plugin_Handled;
 	}
 
-	CVSEntry cvsetting[CVSEntry];
-
 	char buffer[CVS_CVAR_MAXLEN], name[CVS_CVAR_MAXLEN];
 	int cvscount = CvarSettingsArray.Length;
 
@@ -130,6 +141,20 @@ public Action CVS_CvarSettings_Cmd(int client, int args)
 		temp = offset + 20;
 	}
 
+#if SOURCEMOD_V_MINOR > 9
+	CVSEntry cvsetting;
+
+	for (int i = offset; i < temp && i < cvscount; i++) {
+		CvarSettingsArray.GetArray(i, cvsetting, sizeof(CVSEntry));
+
+		(cvsetting.CVSE_cvar).GetString(buffer, sizeof(buffer));
+		(cvsetting.CVSE_cvar).GetName(name, sizeof(name));
+
+		ReplyToCommand(client, "[Confogl] Server CVar: %s, Desired Value: %s, Current Value: %s", name, cvsetting.CVSE_newval, buffer);
+	}
+#else
+	CVSEntry cvsetting[CVSEntry];
+
 	for (int i = offset; i < temp && i < cvscount; i++) {
 		CvarSettingsArray.GetArray(i, cvsetting[0], sizeof(cvsetting));
 
@@ -138,6 +163,7 @@ public Action CVS_CvarSettings_Cmd(int client, int args)
 
 		ReplyToCommand(client, "[Confogl] Server CVar: %s, Desired Value: %s, Current Value: %s", name, cvsetting[CVSE_newval], buffer);
 	}
+#endif
 
 	if ((offset + 20) < cvscount) {
 		ReplyToCommand(client, "[Confogl] To see more CVars, use confogl_cvarsettings %d", offset + 20);
@@ -157,8 +183,6 @@ public Action CVS_CvarDiff_Cmd(int client, int args)
 		return Plugin_Handled;
 	}
 
-	CVSEntry cvsetting[CVSEntry];
-
 	char buffer[CVS_CVAR_MAXLEN], name[CVS_CVAR_MAXLEN];
 	int cvscount = CvarSettingsArray.Length;
 
@@ -170,6 +194,26 @@ public Action CVS_CvarDiff_Cmd(int client, int args)
 	}
 
 	int foundCvars = 0;
+
+#if SOURCEMOD_V_MINOR > 9
+	CVSEntry cvsetting;
+
+	while (offset < cvscount && foundCvars < 20) {
+		CvarSettingsArray.GetArray(offset, cvsetting, sizeof(CVSEntry));
+
+		(cvsetting.CVSE_cvar).GetString(buffer, sizeof(buffer));
+		(cvsetting.CVSE_cvar).GetName(name, sizeof(name));
+
+		if (strcmp(cvsetting.CVSE_newval, buffer) != 0) {
+			ReplyToCommand(client, "[Confogl] Server CVar: %s, Desired Value: %s, Current Value: %s", name, cvsetting.CVSE_newval, buffer);
+			foundCvars++;
+		}
+
+		offset++;
+	}
+#else
+	CVSEntry cvsetting[CVSEntry];
+
 	while (offset < cvscount && foundCvars < 20) {
 		CvarSettingsArray.GetArray(offset, cvsetting[0], sizeof(cvsetting));
 
@@ -183,6 +227,7 @@ public Action CVS_CvarDiff_Cmd(int client, int args)
 
 		offset++;
 	}
+#endif
 
 	if (offset < cvscount) {
 		ReplyToCommand(client, "[Confogl] To see more CVars, use confogl_cvarsettings %d", offset);
@@ -193,10 +238,20 @@ public Action CVS_CvarDiff_Cmd(int client, int args)
 
 static void ClearAllSettings()
 {
-	CVSEntry cvsetting[CVSEntry];
-
 	bTrackingStarted = false;
 	int iSize = CvarSettingsArray.Length;
+
+#if SOURCEMOD_V_MINOR > 9
+	CVSEntry cvsetting;
+
+	for (int i = 0; i < iSize; i++) {
+		CvarSettingsArray.GetArray(i, cvsetting, sizeof(CVSEntry));
+
+		(cvsetting.CVSE_cvar).RemoveChangeHook(CVS_ConVarChange);
+		(cvsetting.CVSE_cvar).SetString(cvsetting.CVSE_oldval);
+	}
+#else
+	CVSEntry cvsetting[CVSEntry];
 
 	for (int i = 0; i < iSize; i++) {
 		CvarSettingsArray.GetArray(i, cvsetting[0], sizeof(cvsetting));
@@ -204,15 +259,31 @@ static void ClearAllSettings()
 		cvsetting[CVSE_cvar].RemoveChangeHook(CVS_ConVarChange);
 		cvsetting[CVSE_cvar].SetString(cvsetting[CVSE_oldval]);
 	}
+#endif
 
 	CvarSettingsArray.Clear();
 }
 
 static void SetEnforcedCvars()
 {
-	CVSEntry cvsetting[CVSEntry];
-
 	int iSize = CvarSettingsArray.Length;
+
+#if SOURCEMOD_V_MINOR > 9
+	CVSEntry cvsetting;
+
+	for (int i = 0; i < iSize; i++) {
+		CvarSettingsArray.GetArray(i, cvsetting, sizeof(CVSEntry));
+
+		#if CVARS_DEBUG
+			char debug_buffer[CVS_CVAR_MAXLEN];
+			(cvsetting.CVSE_cvar).GetName(debug_buffer, sizeof(debug_buffer));
+			LogMessage("cvar = %s, newval = %s", debug_buffer, cvsetting.CVSE_newval);
+		#endif
+
+		(cvsetting.CVSE_cvar).SetString(cvsetting.CVSE_newval);
+	}
+#else
+	CVSEntry cvsetting[CVSEntry];
 
 	for (int i = 0; i < iSize; i++) {
 		CvarSettingsArray.GetArray(i, cvsetting[0], sizeof(cvsetting));
@@ -225,6 +296,7 @@ static void SetEnforcedCvars()
 
 		cvsetting[CVSE_cvar].SetString(cvsetting[CVSE_newval]);
 	}
+#endif
 }
 
 static void AddCvar(const char[] cvar, const char[] newval)
@@ -253,10 +325,38 @@ static void AddCvar(const char[] cvar, const char[] newval)
 		return;
 	}
 
-	CVSEntry newEntry[CVSEntry];
-
 	char cvarBuffer[CVS_CVAR_MAXLEN];
 	int iSize = CvarSettingsArray.Length;
+
+#if SOURCEMOD_V_MINOR > 9
+	CVSEntry newEntry;
+
+	for (int i = 0; i < iSize; i++) {
+		CvarSettingsArray.GetArray(i, newEntry, sizeof(CVSEntry));
+
+		(newEntry.CVSE_cvar).GetName(cvarBuffer, CVS_CVAR_MAXLEN);
+
+		if (strcmp(cvar, cvarBuffer, false) == 0) {
+			LogError("[Confogl] CvarSettings: Attempt to track ConVar %s, which is already being tracked.", cvar);
+			return;
+		}
+	}
+
+	newCvar.GetString(cvarBuffer, CVS_CVAR_MAXLEN);
+
+	newEntry.CVSE_cvar = newCvar;
+	strcopy(newEntry.CVSE_oldval, CVS_CVAR_MAXLEN, cvarBuffer);
+	strcopy(newEntry.CVSE_newval, CVS_CVAR_MAXLEN, newval);
+
+	newCvar.AddChangeHook(CVS_ConVarChange);
+
+#if CVARS_DEBUG
+	LogMessage("[Confogl] CvarSettings: cvar = %s, newval = %s, oldval = %s", cvar, newval, cvarBuffer);
+#endif
+
+	CvarSettingsArray.PushArray(newEntry, sizeof(CVSEntry));
+#else
+	CVSEntry newEntry[CVSEntry];
 
 	for (int i = 0; i < iSize; i++) {
 		CvarSettingsArray.GetArray(i, newEntry[0], sizeof(newEntry));
@@ -282,6 +382,7 @@ static void AddCvar(const char[] cvar, const char[] newval)
 #endif
 
 	CvarSettingsArray.PushArray(newEntry[0], sizeof(newEntry));
+#endif
 }
 
 public void CVS_ConVarChange(ConVar hConVar, const char[] sOldValue, const char[] sNewValue)
@@ -289,6 +390,7 @@ public void CVS_ConVarChange(ConVar hConVar, const char[] sOldValue, const char[
 	if (bTrackingStarted) {
 		char sName[CVS_CVAR_MAXLEN];
 		hConVar.GetName(sName, sizeof(sName));
+
 		PrintToChatAll("!!! [Confogl] Tracked Server CVar \"%s\" changed from \"%s\" to \"%s\" !!!", sName, sOldValue, sNewValue);
 		//CPrintToChatAll("{blue}[{default}Confogl{blue}] {default}Tracked Server CVar \"{green}%s{default}\" changed from \"{blue}%s{default}\" to \"{blue}%s{default}\"", sName, sOldValue, sNewValue); //rework
 	}
