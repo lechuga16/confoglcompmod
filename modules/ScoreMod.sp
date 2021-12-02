@@ -20,6 +20,7 @@ static float
 	SM_fTempMulti[3] = {0.0, ...};
 
 static bool
+	SM_bEventsHooked = false,
 	SM_bModuleIsEnabled = false,
 	SM_bHooked = false,
 	SM_bIsFirstRoundOver = false,
@@ -175,14 +176,7 @@ public void SM_ConVarChanged_Health(ConVar hConVar, const char[] sOldValue, cons
 
 static void PluginEnable()
 {
-	HookEvent("door_close", SM_DoorClose_Event);
-	HookEvent("player_death", SM_PlayerDeath_Event);
-	HookEvent("round_end", SM_RoundEnd_Event);
-	HookEvent("round_start", SM_RoundStart_Event);
-	HookEvent("finale_vehicle_leaving", SM_FinaleVehicleLeaving_Event, EventHookMode_PostNoCopy);
-
-	AddCommandListener(SM_Command_Say, "say");
-	AddCommandListener(SM_Command_Say, "say_team");
+	ToggleHook(true);
 
 	SM_fHBRatio = SM_hHBRatio.FloatValue;
 	SM_fSurvivalBonusRatio = SM_hSurvivalBonusRatio.FloatValue;
@@ -198,17 +192,41 @@ static void PluginEnable()
 	SM_bHooked = true;
 }
 
+static void ToggleHook(bool bIsHook)
+{
+	if (bIsHook) {
+		if (!SM_bEventsHooked) {
+			HookEvent("door_close", SM_DoorClose_Event);
+			HookEvent("player_death", SM_PlayerDeath_Event);
+			HookEvent("round_end", SM_RoundEnd_Event, EventHookMode_PostNoCopy);
+			HookEvent("round_start", SM_RoundStart_Event, EventHookMode_PostNoCopy);
+			HookEvent("finale_vehicle_leaving", SM_FinaleVehicleLeaving_Event, EventHookMode_PostNoCopy);
+
+			/*AddCommandListener(SM_Command_Say, "say");
+			AddCommandListener(SM_Command_Say, "say_team");*/
+
+			SM_bEventsHooked = true;
+		}
+	} else {
+		if (SM_bEventsHooked) {
+			UnhookEvent("door_close", SM_DoorClose_Event);
+			UnhookEvent("player_death", SM_PlayerDeath_Event);
+			UnhookEvent("round_end", SM_RoundEnd_Event, EventHookMode_PostNoCopy);
+			UnhookEvent("round_start", SM_RoundStart_Event, EventHookMode_PostNoCopy);
+			UnhookEvent("finale_vehicle_leaving", SM_FinaleVehicleLeaving_Event, EventHookMode_PostNoCopy);
+
+			/*RemoveCommandListener(SM_Command_Say, "say");
+			RemoveCommandListener(SM_Command_Say, "say_team");*/
+
+			SM_bEventsHooked = false;
+		}
+	}
+}
+
 static void PluginDisable(bool unhook = true)
 {
 	if (unhook) {
-		UnhookEvent("door_close", SM_DoorClose_Event);
-		UnhookEvent("player_death", SM_PlayerDeath_Event);
-		UnhookEvent("round_end", SM_RoundEnd_Event, EventHookMode_PostNoCopy);
-		UnhookEvent("round_start", SM_RoundStart_Event, EventHookMode_PostNoCopy);
-		UnhookEvent("finale_vehicle_leaving", SM_FinaleVehicleLeaving_Event, EventHookMode_PostNoCopy);
-
-		RemoveCommandListener(SM_Command_Say, "say");
-		RemoveCommandListener(SM_Command_Say, "say_team");
+		ToggleHook(false);
 	}
 
 	SM_hSurvivalBonus.SetInt(SM_iDefaultSurvivalBonus);
@@ -437,7 +455,7 @@ static float SM_CalculateAvgHealth(int &iAliveCount = 0)
 	return fAvgHealth;
 }
 
-public Action SM_Command_Say(int iClient, const char[] sCommand, int iArgc)
+/*public Action SM_Command_Say(int iClient, const char[] sCommand, int iArgc)
 {
 	if (iClient == 0) {
 		return Plugin_Continue;
@@ -455,7 +473,7 @@ public Action SM_Command_Say(int iClient, const char[] sCommand, int iArgc)
 	}
 
 	return Plugin_Continue;
-}
+}*/
 
 static int SM_CalculateSurvivalBonus()
 {
