@@ -3,259 +3,293 @@
 #endif
 #define __cvar_settings_included
 
-#define CVS_CVAR_MAXLEN 64
-#define CVARS_DEBUG		0
+#define CVARS_DEBUG			0
+#define CVS_CVAR_MAXLEN		64
 
 enum CVSEntry
 {
-	Handle:CVSE_cvar,
+	ConVar:CVSE_cvar,
 	String:CVSE_oldval[CVS_CVAR_MAXLEN],
 	String:CVSE_newval[CVS_CVAR_MAXLEN]
-}
+};
 
-static Handle:CvarSettingsArray;
-static bool:bTrackingStarted;
+static bool
+	bTrackingStarted = false;
 
-CVS_OnModuleStart()
+static ArrayList
+	CvarSettingsArray = null;
+
+void CVS_OnModuleStart()
 {
-	CvarSettingsArray = CreateArray(_:CVSEntry);
+	CvarSettingsArray = new ArrayList(view_as<int>(CVSEntry));
+
 	RegConsoleCmd("confogl_cvarsettings", CVS_CvarSettings_Cmd, "List all ConVars being enforced by Confogl");
 	RegConsoleCmd("confogl_cvardiff", CVS_CvarDiff_Cmd, "List any ConVars that have been changed from their initialized values");
-	
+
 	RegServerCmd("confogl_addcvar", CVS_AddCvar_Cmd, "Add a ConVar to be set by Confogl");
 	RegServerCmd("confogl_setcvars", CVS_SetCvars_Cmd, "Starts enforcing ConVars that have been added.");
 	RegServerCmd("confogl_resetcvars", CVS_ResetCvars_Cmd, "Resets enforced ConVars.  Cannot be used during a match!");
-	
-	
 }
 
-CVS_OnModuleEnd()
+void CVS_OnModuleEnd()
 {
 	ClearAllSettings();
 }
 
-CVS_OnConfigsExecuted()
+void CVS_OnConfigsExecuted()
 {
-	if (bTrackingStarted) SetEnforcedCvars();
-}
-
-public Action:CVS_SetCvars_Cmd(args)
-{
-	if (IsPluginEnabled())
-	{
-		if (bTrackingStarted)
-		{
-			PrintToServer("Tracking has already been started");
-			return;
-		}
-		#if CVARS_DEBUG
-			LogMessage("[Confogl] CvarSettings: No longer accepting new ConVars");
-		#endif
+	if (bTrackingStarted) {
 		SetEnforcedCvars();
-		bTrackingStarted = true;
 	}
 }
 
-public Action:CVS_AddCvar_Cmd(args)
+public Action CVS_SetCvars_Cmd(int args)
 {
-	if (args != 2)
-	{
+	if (!IsPluginEnabled()) {
+		return Plugin_Handled;
+	}
+
+	if (bTrackingStarted) {
+		PrintToServer("Tracking has already been started");
+		return Plugin_Handled;
+	}
+
+#if CVARS_DEBUG
+	LogMessage("[Confogl] CvarSettings: No longer accepting new ConVars");
+#endif
+
+	SetEnforcedCvars();
+	bTrackingStarted = true;
+
+	return Plugin_Handled;
+}
+
+public Action CVS_AddCvar_Cmd(int args)
+{
+	if (args != 2) {
 		PrintToServer("Usage: confogl_addcvar <cvar> <newValue>");
-		if (IsDebugEnabled())
-		{
-			decl String:cmdbuf[MAX_NAME_LENGTH];
+
+		if (IsDebugEnabled()) {
+			char cmdbuf[MAX_NAME_LENGTH];
 			GetCmdArgString(cmdbuf, sizeof(cmdbuf));
 			LogError("[Confogl] Invalid Cvar Add: %s", cmdbuf);
 		}
+
 		return Plugin_Handled;
 	}
-	
-	decl String:cvar[CVS_CVAR_MAXLEN], String:newval[CVS_CVAR_MAXLEN];
+
+	char cvar[CVS_CVAR_MAXLEN], newval[CVS_CVAR_MAXLEN];
 	GetCmdArg(1, cvar, sizeof(cvar));
 	GetCmdArg(2, newval, sizeof(newval));
-	
+
 	AddCvar(cvar, newval);
-	
+
 	return Plugin_Handled;
 }
 
-public Action:CVS_ResetCvars_Cmd(args)
+public Action CVS_ResetCvars_Cmd(int args)
 {
-	if (IsPluginEnabled())
-	{
+	if (IsPluginEnabled()) {
 		PrintToServer("Can't reset tracking in the middle of a match");
 		return Plugin_Handled;
 	}
+
 	ClearAllSettings();
 	PrintToServer("Server CVar Tracking Information Reset!");
+
 	return Plugin_Handled;
 }
 
-public Action:CVS_CvarSettings_Cmd(client, args)
+public Action CVS_CvarSettings_Cmd(int client, int args)
 {
-	if (!IsPluginEnabled()) return Plugin_Handled;
-	
-	if (!bTrackingStarted)
-	{
+	if (!IsPluginEnabled()) {
+		return Plugin_Handled;
+	}
+
+	if (!bTrackingStarted) {
 		ReplyToCommand(client, "[Confogl] CVar tracking has not been started!! THIS SHOULD NOT OCCUR DURING A MATCH!");
 		return Plugin_Handled;
 	}
-	
-	new cvscount = GetArraySize(CvarSettingsArray);
-	decl cvsetting[CVSEntry];
-	decl String:buffer[CVS_CVAR_MAXLEN], String:name[CVS_CVAR_MAXLEN];
-	
+
+	CVSEntry cvsetting[CVSEntry];
+
+	char buffer[CVS_CVAR_MAXLEN], name[CVS_CVAR_MAXLEN];
+	int cvscount = CvarSettingsArray.Length;
+
 	ReplyToCommand(client, "[Confogl] Enforced Server CVars (Total %d)", cvscount);
-	
+
 	GetCmdArg(1, buffer, sizeof(buffer));
-	new offset = StringToInt(buffer);
-	
-	if (offset < 0 || offset > cvscount) return Plugin_Handled;
-	
-	new temp = cvscount;
-	if (offset + 20 < cvscount) temp = offset + 20;
-	
-	for (new i = offset; i < temp && i < cvscount; i++)
-	{
-		GetArrayArray(CvarSettingsArray, i, cvsetting[0]);
-		GetConVarString(cvsetting[CVSE_cvar], buffer, sizeof(buffer));
-		GetConVarName(cvsetting[CVSE_cvar], name, sizeof(name));
+	int offset = StringToInt(buffer);
+
+	if (offset < 0 || offset > cvscount) {
+		return Plugin_Handled;
+	}
+
+	int temp = cvscount;
+	if ((offset + 20) < cvscount) {
+		temp = offset + 20;
+	}
+
+	for (int i = offset; i < temp && i < cvscount; i++) {
+		CvarSettingsArray.GetArray(i, cvsetting[0], sizeof(cvsetting));
+
+		cvsetting[CVSE_cvar].GetString(buffer, sizeof(buffer));
+		cvsetting[CVSE_cvar].GetName(name, sizeof(name));
+
 		ReplyToCommand(client, "[Confogl] Server CVar: %s, Desired Value: %s, Current Value: %s", name, cvsetting[CVSE_newval], buffer);
 	}
-	if (offset + 20 < cvscount) ReplyToCommand(client, "[Confogl] To see more CVars, use confogl_cvarsettings %d", offset+20);
+
+	if ((offset + 20) < cvscount) {
+		ReplyToCommand(client, "[Confogl] To see more CVars, use confogl_cvarsettings %d", offset + 20);
+	}
+
 	return Plugin_Handled;
 }
 
-public Action:CVS_CvarDiff_Cmd(client, args)
+public Action CVS_CvarDiff_Cmd(int client, int args)
 {
-	if (!IsPluginEnabled()) return Plugin_Handled;
-	
-	if (!bTrackingStarted)
-	{
+	if (!IsPluginEnabled()) {
+		return Plugin_Handled;
+	}
+
+	if (!bTrackingStarted) {
 		ReplyToCommand(client, "[Confogl] CVar tracking has not been started!! THIS SHOULD NOT OCCUR DURING A MATCH!");
 		return Plugin_Handled;
 	}
-	
-	new cvscount = GetArraySize(CvarSettingsArray);
-	decl cvsetting[CVSEntry];
-	decl String:buffer[CVS_CVAR_MAXLEN], String:name[CVS_CVAR_MAXLEN];
-	
+
+	CVSEntry cvsetting[CVSEntry];
+
+	char buffer[CVS_CVAR_MAXLEN], name[CVS_CVAR_MAXLEN];
+	int cvscount = CvarSettingsArray.Length;
+
 	GetCmdArg(1, buffer, sizeof(buffer));
-	new offset = StringToInt(buffer);
-	
-	if (offset > cvscount) return Plugin_Handled;
-	
-	new foundCvars;
-	
-	while (offset < cvscount && foundCvars < 20)
-	{
-		GetArrayArray(CvarSettingsArray, offset, cvsetting[0]);
-		GetConVarString(cvsetting[CVSE_cvar], buffer, sizeof(buffer));
-		GetConVarName(cvsetting[CVSE_cvar], name, sizeof(name));
-		if (!StrEqual(cvsetting[CVSE_newval], buffer))
-		{
+	int offset = StringToInt(buffer);
+
+	if (offset > cvscount) {
+		return Plugin_Handled;
+	}
+
+	int foundCvars = 0;
+	while (offset < cvscount && foundCvars < 20) {
+		CvarSettingsArray.GetArray(offset, cvsetting[0], sizeof(cvsetting));
+
+		cvsetting[CVSE_cvar].GetString(buffer, sizeof(buffer));
+		cvsetting[CVSE_cvar].GetName(name, sizeof(name));
+
+		if (strcmp(cvsetting[CVSE_newval], buffer) != 0) {
 			ReplyToCommand(client, "[Confogl] Server CVar: %s, Desired Value: %s, Current Value: %s", name, cvsetting[CVSE_newval], buffer);
 			foundCvars++;
 		}
+
 		offset++;
 	}
-	
-	if (offset < cvscount) ReplyToCommand(client, "[Confogl] To see more CVars, use confogl_cvarsettings %d", offset);
+
+	if (offset < cvscount) {
+		ReplyToCommand(client, "[Confogl] To see more CVars, use confogl_cvarsettings %d", offset);
+	}
+
 	return Plugin_Handled;
 }
 
-static ClearAllSettings()
+static void ClearAllSettings()
 {
+	CVSEntry cvsetting[CVSEntry];
+
 	bTrackingStarted = false;
-	new cvsetting[CVSEntry];
-	for (new i; i < GetArraySize(CvarSettingsArray); i++)
-	{
-		GetArrayArray(CvarSettingsArray, i, cvsetting[0]);
-		
-		UnhookConVarChange(cvsetting[CVSE_cvar], CVS_ConVarChange);
-		SetConVarString(cvsetting[CVSE_cvar], cvsetting[CVSE_oldval]);
+	int iSize = CvarSettingsArray.Length;
+
+	for (int i = 0; i < iSize; i++) {
+		CvarSettingsArray.GetArray(i, cvsetting[0], sizeof(cvsetting));
+
+		cvsetting[CVSE_cvar].RemoveChangeHook(CVS_ConVarChange);
+		cvsetting[CVSE_cvar].SetString(cvsetting[CVSE_oldval]);
 	}
-	ClearArray(CvarSettingsArray);
+
+	CvarSettingsArray.Clear();
 }
 
-static SetEnforcedCvars()
+static void SetEnforcedCvars()
 {
-	new cvsetting[CVSEntry];
-	for (new i; i < GetArraySize(CvarSettingsArray); i++)
-	{
-		GetArrayArray(CvarSettingsArray, i, cvsetting[0]);
+	CVSEntry cvsetting[CVSEntry];
+
+	int iSize = CvarSettingsArray.Length;
+
+	for (int i = 0; i < iSize; i++) {
+		CvarSettingsArray.GetArray(i, cvsetting[0], sizeof(cvsetting));
+
 		#if CVARS_DEBUG
-			decl String:debug_buffer[CVS_CVAR_MAXLEN];
-			GetConVarName(cvsetting[CVSE_cvar], debug_buffer, sizeof(debug_buffer));
+			char debug_buffer[CVS_CVAR_MAXLEN];
+			cvsetting[CVSE_cvar].GetName(debug_buffer, sizeof(debug_buffer));
 			LogMessage("cvar = %s, newval = %s", debug_buffer, cvsetting[CVSE_newval]);
 		#endif
-		SetConVarString(cvsetting[CVSE_cvar], cvsetting[CVSE_newval]);
+
+		cvsetting[CVSE_cvar].SetString(cvsetting[CVSE_newval]);
 	}
 }
 
-static AddCvar(const String:cvar[], const String:newval[])
+static void AddCvar(const char[] cvar, const char[] newval)
 {
-	if (bTrackingStarted)
-	{
+	if (bTrackingStarted) {
 		#if CVARS_DEBUG
-		LogMessage("[Confogl] CvarSettings: Attempt to track new cvar %s during a match!", cvar);
+			LogMessage("[Confogl] CvarSettings: Attempt to track new cvar %s during a match!", cvar);
 		#endif
 		return;
 	}
-	
-	if (strlen(cvar) >= CVS_CVAR_MAXLEN)
-	{
+
+	if (strlen(cvar) >= CVS_CVAR_MAXLEN) {
 		LogError("[Confogl] CvarSettings: CVar Specified (%s) is longer than max cvar/value length (%d)", cvar, CVS_CVAR_MAXLEN);
 		return;
 	}
-	if (strlen(newval) >= CVS_CVAR_MAXLEN)
-	{
+
+	if (strlen(newval) >= CVS_CVAR_MAXLEN) {
 		LogError("[Confogl] CvarSettings: New Value Specified (%s) is longer than max cvar/value length (%d)", newval, CVS_CVAR_MAXLEN);
 		return;
 	}
-	
-	new Handle:newCvar = FindConVar(cvar);
-	
-	if (newCvar == INVALID_HANDLE)
-	{
+
+	ConVar newCvar = FindConVar(cvar);
+
+	if (newCvar == null) {
 		LogError("[Confogl] CvarSettings: Could not find CVar specified (%s)", cvar);
 		return;
 	}
-	
-	decl newEntry[CVSEntry];
-	decl String:cvarBuffer[CVS_CVAR_MAXLEN];
-	for (new i; i < GetArraySize(CvarSettingsArray); i++)
-	{
-		GetArrayArray(CvarSettingsArray, i, newEntry[0]);
-		GetConVarName(newEntry[CVSE_cvar], cvarBuffer, CVS_CVAR_MAXLEN);
-		if (StrEqual(cvar, cvarBuffer, false))
-		{
+
+	CVSEntry newEntry[CVSEntry];
+
+	char cvarBuffer[CVS_CVAR_MAXLEN];
+	int iSize = CvarSettingsArray.Length;
+
+	for (int i = 0; i < iSize; i++) {
+		CvarSettingsArray.GetArray(i, newEntry[0], sizeof(newEntry));
+
+		newEntry[CVSE_cvar].GetName(cvarBuffer, CVS_CVAR_MAXLEN);
+
+		if (strcmp(cvar, cvarBuffer, false) == 0) {
 			LogError("[Confogl] CvarSettings: Attempt to track ConVar %s, which is already being tracked.", cvar);
 			return;
 		}
 	}
-	
-	GetConVarString(newCvar, cvarBuffer, CVS_CVAR_MAXLEN);
-	
+
+	newCvar.GetString(cvarBuffer, CVS_CVAR_MAXLEN);
+
 	newEntry[CVSE_cvar] = newCvar;
 	strcopy(newEntry[CVSE_oldval], CVS_CVAR_MAXLEN, cvarBuffer);
 	strcopy(newEntry[CVSE_newval], CVS_CVAR_MAXLEN, newval);
-	
-	HookConVarChange(newCvar, CVS_ConVarChange);
-	
-	#if CVARS_DEBUG
-		LogMessage("[Confogl] CvarSettings: cvar = %s, newval = %s, oldval = %s", cvar, newval, cvarBuffer);
-	#endif
-	
-	PushArrayArray(CvarSettingsArray, newEntry[0]);
+
+	newCvar.AddChangeHook(CVS_ConVarChange);
+
+#if CVARS_DEBUG
+	LogMessage("[Confogl] CvarSettings: cvar = %s, newval = %s, oldval = %s", cvar, newval, cvarBuffer);
+#endif
+
+	CvarSettingsArray.PushArray(newEntry[0], sizeof(newEntry));
 }
 
-public CVS_ConVarChange(Handle:convar, const String:oldValue[], const String:newValue[])
+public void CVS_ConVarChange(ConVar hConVar, const char[] sOldValue, const char[] sNewValue)
 {
-	if (bTrackingStarted)
-	{
-		decl String:name[CVS_CVAR_MAXLEN];
-		GetConVarName(convar, name, sizeof(name));
-		PrintToChatAll("!!! [Confogl] Tracked Server CVar \"%s\" changed from \"%s\" to \"%s\" !!!", name, oldValue, newValue);
+	if (bTrackingStarted) {
+		char sName[CVS_CVAR_MAXLEN];
+		hConVar.GetName(sName, sizeof(sName));
+		PrintToChatAll("!!! [Confogl] Tracked Server CVar \"%s\" changed from \"%s\" to \"%s\" !!!", sName, sOldValue, sNewValue);
+		//CPrintToChatAll("{blue}[{default}Confogl{blue}] {default}Tracked Server CVar \"{green}%s{default}\" changed from \"{blue}%s{default}\" to \"{blue}%s{default}\"", sName, sOldValue, sNewValue); //rework
 	}
 }
