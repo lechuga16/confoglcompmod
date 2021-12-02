@@ -480,10 +480,10 @@ static int SM_CalculateSurvivalBonus()
 	return RoundToFloor(SM_CalculateAvgHealth() * SM_fMapMulti * SM_fHBRatio + 400 * SM_fMapMulti * SM_fSurvivalBonusRatio);
 }
 
-static int SM_CalculateScore()
+/*static int SM_CalculateScore()
 {
 	int iAliveCount = 0;
 	float fScore = SM_CalculateAvgHealth(iAliveCount);
 
 	return RoundToFloor(fScore * SM_fMapMulti * SM_fHBRatio + 400 * SM_fMapMulti * SM_fSurvivalBonusRatio) * iAliveCount;
-}
+}*/
