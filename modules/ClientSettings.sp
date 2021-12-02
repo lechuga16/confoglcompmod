@@ -12,6 +12,17 @@ enum /*CLSAction*/
 	CLSA_Log
 };
 
+#if SOURCEMOD_V_MINOR > 9
+enum struct CLSEntry
+{
+	bool CLSE_hasMin;
+	float CLSE_min;
+	bool CLSE_hasMax;
+	float CLSE_max;
+	int CLSE_action;
+	char CLSE_cvar[CLS_CVAR_MAXLEN];
+}
+#else
 enum CLSEntry
 {
 	bool:CLSE_hasMin,
@@ -21,6 +32,7 @@ enum CLSEntry
 	CLSE_action,
 	String:CLSE_cvar[CLS_CVAR_MAXLEN]
 };
+#endif
 
 static ArrayList
 	ClientSettingsArray = null;
@@ -30,7 +42,11 @@ static Handle
 
 void CLS_OnModuleStart()
 {
+#if SOURCEMOD_V_MINOR > 9
+	ClientSettingsArray = new ArrayList(sizeof(CLSEntry));
+#else
 	ClientSettingsArray = new ArrayList(view_as<int>(CLSEntry));
+#endif
 
 	RegConsoleCmd("confogl_clientsettings", _ClientSettings_Cmd, "List Client settings enforced by confogl");
 
@@ -45,14 +61,25 @@ static void ClearAllSettings()
 	ClientSettingsArray.Clear();
 }
 
-/*static void ClearCLSEntry(CLSEntry entry[CLSEntry])
+/*#if SOURCEMOD_V_MINOR > 9
+static void ClearCLSEntry(CLSEntry entry)
+{
+	entry.CLSE_hasMin = false;
+	entry.CLSE_min = 0.0;
+	entry.CLSE_hasMax = false;
+	entry.CLSE_max = 0.0;
+	entry.CLSE_cvar[0] = 0;
+}
+#else
+static void ClearCLSEntry(CLSEntry entry[CLSEntry])
 {
 	entry[CLSE_hasMin] = false;
 	entry[CLSE_min] = 0.0;
 	entry[CLSE_hasMax] = false;
 	entry[CLSE_max] = 0.0;
 	entry[CLSE_cvar][0] = 0;
-}*/
+}
+#endif*/
 
 public Action _CheckClientSettings_Timer(Handle hTimer)
 {
@@ -81,17 +108,25 @@ static void EnforceAllCliSettings()
 static void EnforceCliSettings(int client)
 {
 	int iSize = ClientSettingsArray.Length;
+#if SOURCEMOD_V_MINOR > 9
+	CLSEntry clsetting;
+	for (int i = 0; i < iSize; i++) {
+		ClientSettingsArray.GetArray(i, clsetting, sizeof(CLSEntry));
 
+		QueryClientConVar(client, clsetting.CLSE_cvar, _EnforceCliSettings_QueryReply, i);
+	}
+#else
 	CLSEntry clsetting[CLSEntry];
 	for (int i = 0; i < iSize; i++) {
 		ClientSettingsArray.GetArray(i, clsetting[0], sizeof(clsetting));
 
 		QueryClientConVar(client, clsetting[CLSE_cvar], _EnforceCliSettings_QueryReply, i);
 	}
+#endif
 }
 
 public void _EnforceCliSettings_QueryReply(QueryCookie cookie, int client, ConVarQueryResult result, \
-													const char[] cvarName, const char[] cvarValue, any value)
+												const char[] cvarName, const char[] cvarValue, any value)
 {
 	if (!IsClientConnected(client) || !IsClientInGame(client) || IsClientInKickQueue(client)) {
 		// Client disconnected or got kicked already
@@ -107,6 +142,43 @@ public void _EnforceCliSettings_QueryReply(QueryCookie cookie, int client, ConVa
 	float fCvarVal = StringToFloat(cvarValue);
 	int clsetting_index = value;
 
+#if SOURCEMOD_V_MINOR > 9
+	CLSEntry clsetting;
+	ClientSettingsArray.GetArray(clsetting_index, clsetting, sizeof(CLSEntry));
+
+	if ((clsetting.CLSE_hasMin && fCvarVal < clsetting.CLSE_min)
+		|| (clsetting.CLSE_hasMax && fCvarVal > clsetting.CLSE_max)
+	) {
+		switch (clsetting.CLSE_action) {
+			case CLSA_Kick: {
+				LogMessage("[Confogl] ClientSettings: Kicking %L for bad %s value (%f). Min: %d %f Max: %d %f", \
+									client, cvarName, fCvarVal, clsetting.CLSE_hasMin, clsetting.CLSE_min, clsetting.CLSE_hasMax, clsetting.CLSE_max);
+
+				PrintToChatAll("\x01[\x05Confogl\x01] Kicking \x04%L \x01for having an illegal value for \x04%s \x01(\x04%f\x01) !!!", \
+									client, cvarName, fCvarVal);
+				//CPrintToChatAll("{blue}[{default}Confogl{blue}] {olive}%L {default} was kicked for having an illegal value for {green}%s {blue}({default}%f{blue})",
+									//client, cvarName, fCvarVal); //rework
+
+				char kickMessage[256] = "Illegal Client Value for ";
+				Format(kickMessage, sizeof(kickMessage), "%s%s (%.2f)", kickMessage, cvarName, fCvarVal);
+
+				if (clsetting.CLSE_hasMin) {
+					Format(kickMessage, sizeof(kickMessage), "%s, Min %.2f", kickMessage, clsetting.CLSE_min);
+				}
+
+				if (clsetting.CLSE_hasMax) {
+					Format(kickMessage, sizeof(kickMessage), "%s, Max %.2f", kickMessage, clsetting.CLSE_max);
+				}
+
+				KickClient(client, "%s", kickMessage);
+			}
+			case CLSA_Log: {
+				LogMessage("[Confogl] ClientSettings: Client %L has a bad %s value (%f). Min: %d %f Max: %d %f", \
+									client, cvarName, fCvarVal, clsetting.CLSE_hasMin, clsetting.CLSE_min, clsetting.CLSE_hasMax, clsetting.CLSE_max);
+			}
+		}
+	}
+#else
 	CLSEntry clsetting[CLSEntry];
 	ClientSettingsArray.GetArray(clsetting_index, clsetting[0], sizeof(clsetting));
 
@@ -142,6 +214,7 @@ public void _EnforceCliSettings_QueryReply(QueryCookie cookie, int client, ConVa
 			}
 		}
 	}
+#endif
 }
 
 public Action _ClientSettings_Cmd(int client, int args)
@@ -149,31 +222,59 @@ public Action _ClientSettings_Cmd(int client, int args)
 	int iSize = ClientSettingsArray.Length;
 	ReplyToCommand(client, "[Confogl] Tracked Client CVars (Total %d)", iSize);
 
+#if SOURCEMOD_V_MINOR > 9
+	CLSEntry clsetting;
+#else
 	CLSEntry clsetting[CLSEntry];
+#endif
 
 	char message[256], shortbuf[64];
 	for (int i = 0; i < iSize; i++) {
-		ClientSettingsArray.GetArray(i, clsetting[0], sizeof(clsetting));
-		Format(message, sizeof(message), "[Confogl] Client CVar: %s ", clsetting[CLSE_cvar]);
+		#if SOURCEMOD_V_MINOR > 9
+			ClientSettingsArray.GetArray(i, clsetting, sizeof(CLSEntry));
+			Format(message, sizeof(message), "[Confogl] Client CVar: %s ", clsetting.CLSE_cvar);
 
-		if (clsetting[CLSE_hasMin]) {
-			Format(shortbuf, sizeof(shortbuf), "Min: %f ", clsetting[CLSE_min]);
-			StrCat(message, sizeof(message), shortbuf);
-		}
-
-		if (clsetting[CLSE_hasMax]) {
-			Format(shortbuf, sizeof(shortbuf), "Max: %f ", clsetting[CLSE_max]);
-			StrCat(message, sizeof(message), shortbuf);
-		}
-
-		switch (clsetting[CLSE_action]) {
-			case CLSA_Kick: {
-				StrCat(message, sizeof(message), "Action: Kick");
+			if (clsetting.CLSE_hasMin) {
+				Format(shortbuf, sizeof(shortbuf), "Min: %f ", clsetting.CLSE_min);
+				StrCat(message, sizeof(message), shortbuf);
 			}
-			case CLSA_Log: {
-				StrCat(message, sizeof(message), "Action: Log");
+
+			if (clsetting.CLSE_hasMax) {
+				Format(shortbuf, sizeof(shortbuf), "Max: %f ", clsetting.CLSE_max);
+				StrCat(message, sizeof(message), shortbuf);
 			}
-		}
+
+			switch (clsetting.CLSE_action) {
+				case CLSA_Kick: {
+					StrCat(message, sizeof(message), "Action: Kick");
+				}
+				case CLSA_Log: {
+					StrCat(message, sizeof(message), "Action: Log");
+				}
+			}
+		#else
+			ClientSettingsArray.GetArray(i, clsetting[0], sizeof(clsetting));
+			Format(message, sizeof(message), "[Confogl] Client CVar: %s ", clsetting[CLSE_cvar]);
+
+			if (clsetting[CLSE_hasMin]) {
+				Format(shortbuf, sizeof(shortbuf), "Min: %f ", clsetting[CLSE_min]);
+				StrCat(message, sizeof(message), shortbuf);
+			}
+
+			if (clsetting[CLSE_hasMax]) {
+				Format(shortbuf, sizeof(shortbuf), "Max: %f ", clsetting[CLSE_max]);
+				StrCat(message, sizeof(message), shortbuf);
+			}
+
+			switch (clsetting[CLSE_action]) {
+				case CLSA_Kick: {
+					StrCat(message, sizeof(message), "Action: Kick");
+				}
+				case CLSA_Log: {
+					StrCat(message, sizeof(message), "Action: Log");
+				}
+			}
+		#endif
 
 		ReplyToCommand(client, message);
 	}
@@ -300,6 +401,29 @@ static void _AddClientCvar(const char[] cvar, bool hasMin, float min, bool hasMa
 
 	int iSize = ClientSettingsArray.Length;
 
+#if SOURCEMOD_V_MINOR > 9
+	CLSEntry newEntry;
+	for (int i = 0; i < iSize; i++) {
+		ClientSettingsArray.GetArray(i, newEntry, sizeof(CLSEntry));
+		if (strcmp(newEntry.CLSE_cvar, cvar, false) == 0) {
+			LogError("[Confogl] ClientSettings: Attempt to track CVar %s, which is already being tracked.", cvar);
+			return;
+		}
+	}
+
+	newEntry.CLSE_hasMin = hasMin;
+	newEntry.CLSE_min = min;
+	newEntry.CLSE_hasMax = hasMax;
+	newEntry.CLSE_max = max;
+	newEntry.CLSE_action = action;
+	strcopy(newEntry.CLSE_cvar, CLS_CVAR_MAXLEN, cvar);
+
+	if (IsDebugEnabled()) {
+		LogMessage("[Confogl] ClientSettings: Tracking Cvar %s Min %d %f Max %d %f Action %d", cvar, hasMin, min, hasMax, max, action);
+	}
+
+	ClientSettingsArray.PushArray(newEntry, sizeof(CLSEntry));
+#else
 	CLSEntry newEntry[CLSEntry];
 	for (int i = 0; i < iSize; i++) {
 		ClientSettingsArray.GetArray(i, newEntry[0], sizeof(newEntry));
@@ -321,4 +445,5 @@ static void _AddClientCvar(const char[] cvar, bool hasMin, float min, bool hasMa
 	}
 
 	ClientSettingsArray.PushArray(newEntry[0], sizeof(newEntry));
+#endif
 }
