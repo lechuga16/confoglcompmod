@@ -1,13 +1,15 @@
 #pragma semicolon 1
+#pragma newdecls required
 
 #define DEBUG_ALL		0
-#define PLUGIN_VERSION	"2.2.7.2"
+#define PLUGIN_VERSION	"2.2.8"
 
 #include <sourcemod>
 #include <sdktools>
 #include <sdkhooks>
 #define LEFT4FRAMEWORK_INCLUDE 1
 #include <left4framework>
+//#include <colors>
 //#undef REQUIRE_PLUGIN
 //#include <l4d2lib> //ItemTracking (commented out)
 
@@ -175,7 +177,7 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 }
 
 //Left4Dhooks or Left4Downtown functions
-public Action L4D_OnCThrowActivate(int iAbility)
+public Action L4D_OnCThrowActivate(int ability)
 {
 	//Modules
 	if (GT_OnCThrowActivate() == Plugin_Handled) { //GhostTank

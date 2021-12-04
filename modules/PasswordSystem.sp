@@ -4,7 +4,7 @@
 #define __password_system_included
 
 static char
-	PS_sPassword[128] = '\0';
+	PS_sPassword[128] = "\0";
 
 static bool
 	PS_bIsPassworded = false,
