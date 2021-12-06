@@ -288,7 +288,7 @@ static void KillRegisteredItems()
 		}
 
 		itemindex = GetItemIndexFromEntity(i);
-		if (itemindex >= 0/* && !IsEntityInSaferoom(i) */) {
+		if (itemindex >= 0/* && !IsEntityInSaferoom(i)*/) {
 			if (IsEntityInSaferoom(i, START_SAFEROOM) && g_iSaferoomCount[START_SAFEROOM - 1] < iSurvivorLimit) {
 				g_iSaferoomCount[START_SAFEROOM - 1]++;
 			} else if (IsEntityInSaferoom(i, END_SAFEROOM) && g_iSaferoomCount[END_SAFEROOM - 1] < iSurvivorLimit) {
@@ -390,7 +390,7 @@ static void EnumerateSpawns()
 					}*/
 				}
 			} else {
-				int mylimit = GetItemLimit(itemindex);
+				int mylimit = g_iItemLimits[itemindex];
 				if (IsDebugEnabled()) {
 					LogMessage("[IT] Found an instance of item %s (%d), with limit %d", g_sItemNames[itemindex][IN_longname], itemindex, mylimit);
 				}
@@ -446,7 +446,7 @@ static void RemoveToLimits()
 	int curlimit = 0, killidx = 0;
 
 	for (int itemidx = 0; itemidx < ItemList_Size; itemidx++) {
-		curlimit = GetItemLimit(itemidx);
+		curlimit = g_iItemLimits[itemidx];
 
 		if (curlimit > 0) {
 			// Kill off item spawns until we've reduced the item to the limit
@@ -545,11 +545,6 @@ static void GetSpawnAngles(float buf[3], const ItemTracking spawn[ItemTracking])
 }
 #endif
 
-static int GetItemLimit(int itemidx)
-{
-	return g_iItemLimits[itemidx];
-}
-
 static int GetWeaponIDFromItemList(int id)
 {
 	switch (id) {
@@ -609,5 +604,5 @@ static int GetItemIndexFromEntity(int entity)
 
 static bool IsModuleEnabled()
 {
-	return (IsPluginEnabled() && g_hCvarEnabled.BoolValue); 
+	return (IsPluginEnabled() && g_hCvarEnabled.BoolValue);
 }

@@ -16,6 +16,10 @@ static bool
 	RM_bIsPluginsLoaded = false,
 	RM_bIsMapRestarted = false;
 
+static Handle
+	RM_hFwdMatchLoad = null,
+	RM_hFwdMatchUnload = null;
+
 static ConVar
 	RM_hSbAllBotGame = null,
 	RM_hDoRestart = null,
@@ -26,10 +30,6 @@ static ConVar
 	RM_hConfigFile_On = null,
 	RM_hConfigFile_Plugins = null,
 	RM_hConfigFile_Off = null;
-
-static Handle
-	RM_hFwdMatchLoad = null,
-	RM_hFwdMatchUnload = null;
 
 void RM_APL()
 {
@@ -318,7 +318,7 @@ public Action RM_Cmd_ResetMatch(int client, int args)
 	}
 
 	int iTeam = GetClientTeam(client);
-	if ((iTeam == TEAM_SURVIVOR || iTeam == TEAM_INFECTED) && !RM_bMatchRequest[iTeam - 2]) {
+	if ((iTeam == L4D2Team_Survivor || iTeam == L4D2Team_Infected) && !RM_bMatchRequest[iTeam - 2]) {
 		RM_bMatchRequest[iTeam - 2] = true;
 	} else {
 		return Plugin_Handled;
@@ -330,11 +330,11 @@ public Action RM_Cmd_ResetMatch(int client, int args)
 
 		RM_Match_Load();
 	} else if (RM_bMatchRequest[0] || RM_bMatchRequest[1]) {
-		//PrintToChatAll("\x01[\x05Confogl\x01] The \x04%s\x01 have requested to start a competitive match. The \x04%s\x01 must accept with match command!", 
+		//PrintToChatAll("\x01[\x05Confogl\x01] The \x04%s\x01 have requested to start a competitive match. The \x04%s\x01 must accept with match command!",
 								//g_sTeamName[iTeam + 4], g_sTeamName[iTeam + 3]);
 		CPrintToChatAll("{blue}[{default}Confogl{blue}]{default} The {olive}%s{default} have requested to start a competitive match. The {olive}%s{default} must accept with match command!", \
 								g_sTeamName[iTeam + 4], g_sTeamName[iTeam + 3]);
-		
+
 		if (args > 0) { // cfgfile specified
 			char sBuffer[128];
 			GetCmdArg(1, sBuffer, sizeof(sBuffer));

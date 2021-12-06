@@ -58,7 +58,7 @@ public void WC_PlayerUse_Event(Event hEvent, const char[] sEventName, bool bDont
 
 	int client = GetClientOfUserId(hEvent.GetInt("userid"));
 
-	int primary = GetPlayerWeaponSlot(client, 0);
+	int primary = GetPlayerWeaponSlot(client, L4D2WeaponSlot_Primary);
 	if (primary < 1 || !IsValidEdict(primary)) {
 		return;
 	}
@@ -103,7 +103,7 @@ static int SniperCount(int client)
 		index = GetSurvivorIndex(i);
 
 		if (index != client && index != 0 && IsClientConnected(index)) {
-			ent = GetPlayerWeaponSlot(index, 0);
+			ent = GetPlayerWeaponSlot(index, L4D2WeaponSlot_Primary);
 
 			if (ent > 0 && IsValidEdict(ent)) {
 				GetEdictClassname(ent, temp, sizeof(temp));

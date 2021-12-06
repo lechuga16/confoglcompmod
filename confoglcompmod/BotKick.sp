@@ -85,7 +85,7 @@ public void BK_PlayerBotReplace(Event hEvent, const char[] sEventName, bool bDon
 
 	int iClient = GetClientOfUserId(hEvent.GetInt("player"));
 
-	if (iClient > 0 && IsClientInGame(iClient) && GetClientTeam(iClient) == TEAM_INFECTED) {
+	if (iClient > 0 && IsClientInGame(iClient) && GetClientTeam(iClient) == L4D2Team_Infected) {
 		BK_lastvalidbot = GetClientOfUserId(hEvent.GetInt("bot"));
 		CreateTimer(BOTREPLACEVALIDTIME, BK_CancelValidBot_Timer, _, TIMER_FLAG_NO_MAPCHANGE);
 	}

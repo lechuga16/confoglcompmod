@@ -37,7 +37,7 @@ static void SI_BuildIndex()
 			break;
 		}
 
-		if (!IsClientInGame(client) || GetClientTeam(client) != TEAM_SURVIVOR) {
+		if (!IsClientInGame(client) || GetClientTeam(client) != L4D2Team_Survivor) {
 			continue;
 		}
 

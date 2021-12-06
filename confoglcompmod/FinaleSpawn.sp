@@ -55,7 +55,7 @@ public void HookCallback(int client)
 		return;
 	}
 
-	if (GetClientTeam(client) != TEAM_INFECTED) {
+	if (GetClientTeam(client) != L4D2Team_Infected) {
 		return;
 	}
 

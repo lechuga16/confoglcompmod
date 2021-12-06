@@ -23,6 +23,16 @@ static float
 static KeyValues
 	kMIData = null;
 
+void MI_APL()
+{
+	CreateNative("LGO_IsMapDataAvailable", _native_IsMapDataAvailable);
+	CreateNative("LGO_GetMapValueInt", _native_GetMapValueInt);
+	CreateNative("LGO_GetMapValueFloat", _native_GetMapValueFloat);
+	CreateNative("LGO_GetMapValueVector", _native_GetMapValueVector);
+	CreateNative("LGO_GetMapValueString", _native_GetMapValueString);
+	CreateNative("LGO_CopyMapSubsection", _native_CopyMapSubsection);
+}
+
 void MI_OnModuleStart()
 {
 	MI_KV_Load();
@@ -32,16 +42,6 @@ void MI_OnModuleStart()
 	RegAdminCmd("confogl_save_location", MI_KV_CmdSaveLoc, ADMFLAG_CONFIG);
 
 	HookEvent("player_disconnect", PlayerDisconnect_Event);
-}
-
-void MI_APL()
-{
-	CreateNative("LGO_IsMapDataAvailable", _native_IsMapDataAvailable);
-	CreateNative("LGO_GetMapValueInt", _native_GetMapValueInt);
-	CreateNative("LGO_GetMapValueFloat", _native_GetMapValueFloat);
-	CreateNative("LGO_GetMapValueVector", _native_GetMapValueVector);
-	CreateNative("LGO_GetMapValueString", _native_GetMapValueString);
-	CreateNative("LGO_CopyMapSubsection", _native_CopyMapSubsection);
 }
 
 void MI_OnMapStart()

@@ -3,7 +3,6 @@
 #endif
 #define __ghost_tank_included
 
-#define ZOMBIECLASS_TANK			8
 #define THROWRANGE					99999999.0
 #define FIREIMMUNITY_TIME			5.0
 
@@ -233,7 +232,7 @@ public void GT_TankOnFire(Event hEvent, const char[] sEventName, bool bDontBroad
 	}
 
 	int client = GetClientOfUserId(hEvent.GetInt("userid"));
-	if (client < 1 || g_iGT_TankClient != client || !IsClientInGame(client) || GetClientTeam(client) != TEAM_INFECTED) {
+	if (client < 1 || g_iGT_TankClient != client || !IsClientInGame(client) || GetClientTeam(client) != L4D2Team_Infected) {
 		return;
 	}
 
@@ -258,7 +257,7 @@ public void GT_PlayerIncap(Event hEvent, const char[] sEventName, bool bDontBroa
 
 	int userid = hEvent.GetInt("userid");
 	int client = GetClientOfUserId(userid);
-	if (client < 1 || !IsClientInGame(client) || GetClientTeam(client) != TEAM_SURVIVOR) {
+	if (client < 1 || !IsClientInGame(client) || GetClientTeam(client) != L4D2Team_Survivor) {
 		return;
 	}
 

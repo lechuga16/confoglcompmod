@@ -9,11 +9,11 @@
 	#define DEBUG_DEFAULT "0"
 #endif
 
-static ConVar
-	g_hDebugConVar = null;
-
 static bool
 	g_bConfoglDebug = false;
+
+static ConVar
+	g_hDebugConVar = null;
 
 void Debug_OnModuleStart()
 {
@@ -25,7 +25,7 @@ void Debug_OnModuleStart()
 
 public void Debug_ConVarChange(ConVar hConvar, const char[] sOldValue, const char[] sNewValue)
 {
-	g_bConfoglDebug = view_as<bool>(StringToInt(sNewValue));
+	g_bConfoglDebug = hConvar.BoolValue;
 }
 
 stock bool IsDebugEnabled()

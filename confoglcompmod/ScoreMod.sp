@@ -63,6 +63,10 @@ void SM_OnModuleStart()
 	SM_hMapMulti = CreateConVarEx("SM_mapmulti", "1", "L4D2 Custom Scoring - Increases Healthbonus Max to Distance Max", _, true, 0.0, true, 1.0);
 	SM_hCustomMaxDistance = CreateConVarEx("SM_custommaxdistance", "0", "L4D2 Custom Scoring - Custom max distance from config", _, true, 0.0, true, 1.0);
 
+	SM_fTempMulti[0] = SM_hTempMulti0.FloatValue;
+	SM_fTempMulti[1] = SM_hTempMulti1.FloatValue;
+	SM_fTempMulti[2] = SM_hTempMulti2.FloatValue;
+
 	SM_hEnable.AddChangeHook(SM_ConVarChanged_Enable);
 	SM_hHBRatio.AddChangeHook(SM_CVChanged_HealthBonusRatio);
 	SM_hSurvivalBonusRatio.AddChangeHook(SM_CVChanged_SurvivalBonusRatio);
@@ -70,13 +74,8 @@ void SM_OnModuleStart()
 	SM_hTempMulti1.AddChangeHook(SM_ConVarChanged_TempMulti1);
 	SM_hTempMulti2.AddChangeHook(SM_ConVarChanged_TempMulti2);
 
-	SM_fTempMulti[0] = SM_hTempMulti0.FloatValue;
-	SM_fTempMulti[1] = SM_hTempMulti1.FloatValue;
-	SM_fTempMulti[2] = SM_hTempMulti2.FloatValue;
-
 	SM_hSurvivalBonus = FindConVar("vs_survival_bonus");
 	SM_hTieBreaker = FindConVar("vs_tiebreak_bonus");
-
 	SM_hHealPercent = FindConVar("first_aid_heal_percent");
 	SM_hPillPercent = FindConVar("pain_pills_health_value");
 	SM_hAdrenPercent = FindConVar("adrenaline_health_buffer");
@@ -84,7 +83,6 @@ void SM_OnModuleStart()
 	SM_fHealPercent = SM_hHealPercent.FloatValue;
 	SM_iPillPercent = SM_hPillPercent.IntValue;
 	SM_iAdrenPercent = SM_hAdrenPercent.IntValue;
-
 	SM_iDefaultSurvivalBonus = SM_hSurvivalBonus.IntValue;
 	SM_iDefaultTieBreaker = SM_hTieBreaker.IntValue;
 
@@ -259,7 +257,7 @@ public void SM_PlayerDeath_Event(Event hEvent, const char[] sEventName, bool bDo
 	int client = GetClientOfUserId(hEvent.GetInt("userid"));
 
 	// Can't just check for fakeclient
-	if (client > 0 && GetClientTeam(client) == TEAM_SURVIVOR) {
+	if (client > 0 && GetClientTeam(client) == L4D2Team_Survivor) {
 		SM_hSurvivalBonus.SetInt(SM_CalculateSurvivalBonus());
 	}
 }
@@ -407,7 +405,7 @@ static float SM_CalculateAvgHealth(int &iAliveCount = 0)
 					iIncapCount = GetSurvivorIncapCount(index);
 
 					// Adjust for kits
-					iTemp = GetPlayerWeaponSlot(index, 3);
+					iTemp = GetPlayerWeaponSlot(index, L4D2WeaponSlot_HeavyHealthItem);
 					if (iTemp > -1) {
 						GetEdictClassname(iTemp, strTemp, sizeof(strTemp));
 
@@ -419,7 +417,7 @@ static float SM_CalculateAvgHealth(int &iAliveCount = 0)
 					}
 
 					// Adjust for pills/adrenaline
-					iTemp = GetPlayerWeaponSlot(index, 4);
+					iTemp = GetPlayerWeaponSlot(index, L4D2WeaponSlot_LightHealthItem);
 					if (iTemp > -1) {
 						GetEdictClassname(iTemp, strTemp, sizeof(strTemp));
 
@@ -474,11 +472,7 @@ static float SM_CalculateAvgHealth(int &iAliveCount = 0)
 
 /*public Action SM_Command_Say(int iClient, const char[] sCommand, int iArgc)
 {
-	if (iClient == 0) {
-		return Plugin_Continue;
-	}
-
-	if (!SM_bModuleIsEnabled || !IsPluginEnabled()) {
+	if (iClient == 0 || !SM_bModuleIsEnabled || !IsPluginEnabled()) {
 		return Plugin_Continue;
 	}
 

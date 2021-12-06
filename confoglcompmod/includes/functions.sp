@@ -14,7 +14,7 @@ static ConVar
 static bool
 	bIsPluginEnabled = false;
 
-void FNS_OnPluginStart()
+void Fns_OnModuleStart()
 {
 	g_hCvarMpGameMode = FindConVar("mp_gamemode");
 	g_hCvarPainPillsDecayRate = FindConVar("pain_pills_decay_rate");
@@ -59,12 +59,12 @@ stock bool IsVersus()
 	return (StrContains(GameMode, "versus", false) != -1);
 }
 
-stock bool IsScavenge()
+/*stock bool IsScavenge()
 {
 	char GameMode[32];
 	g_hCvarMpGameMode.GetString(GameMode, sizeof(GameMode));
 	return (StrContains(GameMode, "scavenge", false) != -1);
-}
+}*/
 
 stock bool IsPluginEnabled(bool bSetStatus = false, bool bStatus = false)
 {
@@ -97,7 +97,7 @@ stock int GetSurvivorIncapCount(int client)
 
 stock bool IsSurvivor(int client)
 {
-	return (IsClientInGame(client) && GetClientTeam(client) == TEAM_SURVIVOR);
+	return (IsClientInGame(client) && GetClientTeam(client) == L4D2Team_Survivor);
 }
 
 stock void ZeroVector(float vector[3])

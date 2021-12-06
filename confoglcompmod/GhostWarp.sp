@@ -46,7 +46,7 @@ bool GW_OnPlayerRunCmd(int iClient, int iButtons)
 		return false;
 	}
 
-	if (/*!IsClientInGame(iClient) || */GetClientTeam(iClient) != TEAM_INFECTED || GetEntProp(iClient, Prop_Send, "m_isGhost", 1) != 1) {
+	if (/*!IsClientInGame(iClient) || */GetClientTeam(iClient) != L4D2Team_Infected || GetEntProp(iClient, Prop_Send, "m_isGhost", 1) != 1) {
 		return false;
 	}
 
@@ -97,7 +97,7 @@ public Action GW_Cmd_WarpToSurvivor(int iClient, int iArgs)
 		return Plugin_Handled;
 	}
 
-	if (GetClientTeam(iClient) != TEAM_INFECTED || GetEntProp(iClient, Prop_Send, "m_isGhost", 1) != 1) {
+	if (GetClientTeam(iClient) != L4D2Team_Infected || GetEntProp(iClient, Prop_Send, "m_isGhost", 1) != 1) {
 		return Plugin_Handled;
 	}
 

@@ -5,15 +5,10 @@
 
 #define MAX_ENTITY_NAME_LENGTH		64
 
-#define START_SAFEROOM				(1 << 0)
-#define END_SAFEROOM				(1 << 1)
-
 #define NUM_OF_SURVIVORS			4
 
-#define TEAM_NONE					0
-#define TEAM_SPECTATOR				1
-#define TEAM_SURVIVOR				2
-#define TEAM_INFECTED				3
+#define START_SAFEROOM				(1 << 0)
+#define END_SAFEROOM				(1 << 1)
 
 #define SPAWNFLAG_READY				0
 #define SPAWNFLAG_CANSPAWN			(0 << 0)
@@ -28,6 +23,43 @@
 #define SPAWNFLAG_TOOCLOSE			(1 << 8)
 #define SPAWNFLAG_RESTRICTEDAREA	(1 << 9)
 #define SPAWNFLAG_BLOCKED			(1 << 10)
+
+enum
+{
+	L4D2Team_None = 0,
+	L4D2Team_Spectator,
+	L4D2Team_Survivor,
+	L4D2Team_Infected,
+	
+	L4D2Team_Size //4 size
+};
+
+enum
+{
+	L4D2Infected_Common = 0,
+	L4D2Infected_Smoker = 1,
+	L4D2Infected_Boomer,
+	L4D2Infected_Hunter,
+	L4D2Infected_Spitter,
+	L4D2Infected_Jockey,
+	L4D2Infected_Charger,
+	L4D2Infected_Witch,
+	L4D2Infected_Tank,
+	L4D2Infected_Survivor,
+	
+	L4D2Infected_Size //10 size
+};
+
+enum
+{
+	L4D2WeaponSlot_Primary = 0,
+	L4D2WeaponSlot_Secondary,
+	L4D2WeaponSlot_Throwable,
+	L4D2WeaponSlot_HeavyHealthItem,
+	L4D2WeaponSlot_LightHealthItem,
+	
+	L4D2WeaponSlot_Size //5 size
+};
 
 enum /*WeaponIDs*/
 {
@@ -70,7 +102,7 @@ enum /*WeaponIDs*/
 	WEPID_SIZE
 };
 
-stock const char g_sTeamName[8][] =
+/*stock const char g_sTeamName[8][] =
 {
 	"Spectator",
 	"" ,
@@ -80,4 +112,4 @@ stock const char g_sTeamName[8][] =
 	"Infected",
 	"Survivors",
 	"Infected"
-};
+};*/

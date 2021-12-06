@@ -41,7 +41,7 @@
 #include "confoglcompmod/includes/debug.sp"
 #include "confoglcompmod/includes/survivorindex.sp"
 #include "confoglcompmod/includes/configs.sp"
-#include "confoglcompmod/includes/customtags.inc"
+#include "confoglcompmod/includes/customtags.sp"
 
 #if MODULE_MAPINFO
 	#include "confoglcompmod/MapInfo.sp"
@@ -150,7 +150,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 public void OnPluginStart()
 {
 	//Plugin functions
-	FNS_OnPluginStart(); //functions
+	Fns_OnModuleStart(); //functions
 	Debug_OnModuleStart(); //debug
 	Configs_OnModuleStart(); //configs
 	SI_OnModuleStart(); //survivorindex
