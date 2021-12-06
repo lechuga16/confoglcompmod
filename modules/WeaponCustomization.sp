@@ -69,8 +69,8 @@ public void WC_PlayerUse_Event(Event hEvent, const char[] sEventName, bool bDont
 	if (IsValidSniper(primary_name)) {
 		if (SniperCount(client) >= WC_iLimitCount) {
 			RemovePlayerItem(client, primary);
-			PrintToChat(client, "\x01[\x05Confogl\x01] Maximum \x04%d \x01sniping rifle(s) is enforced.", WC_iLimitCount);
-			//CPrintToChat(client, "{blue}[{default}Confogl{blue}] {default}Maximum {blue}%d {olive}sniping rifle(s) {default}is enforced.", WC_iLimitCount); //rework
+			//PrintToChat(client, "\x01[\x05Confogl\x01] Maximum \x04%d \x01sniping rifle(s) is enforced.", WC_iLimitCount);
+			CPrintToChat(client, "{blue}[{default}Confogl{blue}]{default} Maximum {blue}%d {olive}sniping rifle(s) {default}is enforced.", WC_iLimitCount);
 
 			if (WC_iLastClient == client) {
 				if (WC_iLastWeapon > 0 && IsValidEdict(WC_iLastWeapon)) {

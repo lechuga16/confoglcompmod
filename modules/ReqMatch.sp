@@ -156,12 +156,12 @@ static void RM_Match_Load()
 	RM_bIsMatchModeLoaded = true;
 	IsPluginEnabled(true, true);
 
-	PrintToChatAll("\x01[\x05Confogl\x01] Match mode loaded!"); //original
-	//CPrintToChatAll("{blue}[{default}Confogl{blue}] {default}Match mode loaded!"); //rework
+	//PrintToChatAll("\x01[\x05Confogl\x01] Match mode loaded!");
+	CPrintToChatAll("{blue}[{default}Confogl{blue}]{default} Match mode loaded!");
 
 	if (!RM_bIsMapRestarted && RM_hDoRestart.BoolValue) {
-		PrintToChatAll("\x01[\x05Confogl\x01] Restarting map!"); //original
-		//CPrintToChatAll("{blue}[{default}Confogl{blue}] {default}Restarting map!"); //rework
+		//PrintToChatAll("\x01[\x05Confogl\x01] Restarting map!");
+		CPrintToChatAll("{blue}[{default}Confogl{blue}]{default} Restarting map!");
 
 		CreateTimer(MAPRESTARTTIME, RM_Match_MapRestart_Timer);
 	}
@@ -204,8 +204,8 @@ static void RM_Match_Unload(bool bForced = false)
 	Call_StartForward(RM_hFwdMatchUnload);
 	Call_Finish();
 
-	PrintToChatAll("\x01[\x05Confogl\x01] Match mode unloaded!"); //original
-	//CPrintToChatAll("{blue}[{default}Confogl{blue}] {default}Match mode unloaded!"); //rework
+	//PrintToChatAll("\x01[\x05Confogl\x01] Match mode unloaded!");
+	CPrintToChatAll("{blue}[{default}Confogl{blue}]{default} Match mode unloaded!");
 
 	RM_hConfigFile_Off.GetString(sBuffer, sizeof(sBuffer));
 	ExecuteCfg(sBuffer);
@@ -234,8 +234,8 @@ public Action RM_Match_MapRestart_Timer(Handle hTimer)
 static bool RM_UpdateCfgOn(const char[] cfgfile, bool bIsPrint = true)
 {
 	if (SetCustomCfg(cfgfile)) {
-		PrintToChatAll("\x01[\x05Confogl\x01] Using \"\x04%s\x01\" config.", cfgfile); //original
-		//CPrintToChatAll("{blue}[{default}Confogl{blue}] {default}Loading '{olive}%s{default}'", cfgfile); //rework
+		//PrintToChatAll("\x01[\x05Confogl\x01] Using \"\x04%s\x01\" config.", cfgfile);
+		CPrintToChatAll("{blue}[{default}Confogl{blue}]{default} Loading '{olive}%s{default}'.", cfgfile);
 
 		if (RM_DEBUG || IsDebugEnabled()) {
 			LogMessage("%s Starting match on config %s", RM_DEBUG_PREFIX, cfgfile);
@@ -245,8 +245,8 @@ static bool RM_UpdateCfgOn(const char[] cfgfile, bool bIsPrint = true)
 	}
 
 	if (bIsPrint) {
-		PrintToChatAll("\x01[\x05Confogl\x01] Config \"\x04%s\x01\" not found, using default config!", cfgfile);
-		//CPrintToChatAll("{blue}[{default}Confogl{blue}]{default} Config '{olive}%s{default}' not found, using default config!", cfgfile);
+		//PrintToChatAll("\x01[\x05Confogl\x01] Config \"\x04%s\x01\" not found, using default config!", cfgfile);
+		CPrintToChatAll("{blue}[{default}Confogl{blue}]{default} Config '{olive}%s{default}' not found, using default config!", cfgfile);
 	}
 
 	return false;
@@ -269,8 +269,8 @@ public Action RM_Cmd_ForceMatch(int client, int args)
 		if (client == 0) {
 			PrintToServer("[Confogl] Please specify a config to load.");
 		} else {
-			PrintToChat(client, "\x01[\x05Confogl\x01] Please specify a \"\x04config\x01\" to load.");
-			//CPrintToChat(client, "{blue}[{default}Confogl{blue}] {default}Please specify a {olive}config {default}to load.");
+			//PrintToChat(client, "\x01[\x05Confogl\x01] Please specify a \x04config\x01 to load.");
+			CPrintToChat(client, "{blue}[{default}Confogl{blue}]{default} Please specify a {olive}config{default} to load.");
 		}
 		return Plugin_Handled;
 	}
@@ -284,8 +284,8 @@ public Action RM_Cmd_ForceMatch(int client, int args)
 		if (client == 0) {
 			PrintToServer("[Confogl] Config %s not found!", sBuffer);
 		} else {
-			PrintToChat(client, "\x01[\x05Confogl\x01] Please specify a \"\x04%s\x01\" to load.", sBuffer);
-			//CPrintToChat(client, "{blue}[{default}Confogl{blue}] {default}Config {olive}%s{default} not found!", sBuffer);
+			//PrintToChat(client, "\x01[\x05Confogl\x01] Please specify a \"\x04%s\x01\" to load.", sBuffer);
+			CPrintToChat(client, "{blue}[{default}Confogl{blue}]{default} Config '{olive}%s{default}' not found!", sBuffer);
 		}
 
 		return Plugin_Handled;
@@ -325,12 +325,16 @@ public Action RM_Cmd_ResetMatch(int client, int args)
 	}
 
 	if (RM_bMatchRequest[0] && RM_bMatchRequest[1]) {
-		PrintToChatAll("\x01[\x05Confogl\x01] Both teams have agreed to start a competitive match!");
+		//PrintToChatAll("\x01[\x05Confogl\x01] Both teams have agreed to start a competitive match!");
+		CPrintToChatAll("{blue}[{default}Confogl{blue}]{default} Both teams have agreed to start a competitive match!");
 
 		RM_Match_Load();
 	} else if (RM_bMatchRequest[0] || RM_bMatchRequest[1]) {
-		PrintToChatAll("\x01[\x05Confogl\x01] The \x04%s \x01have requested to start a competitive match. The \x04%s \x01must accept with \x04/match \x01command!", g_sTeamName[iTeam + 4], g_sTeamName[iTeam + 3]);
-
+		//PrintToChatAll("\x01[\x05Confogl\x01] The \x04%s\x01 have requested to start a competitive match. The \x04%s\x01 must accept with match command!", 
+								//g_sTeamName[iTeam + 4], g_sTeamName[iTeam + 3]);
+		CPrintToChatAll("{blue}[{default}Confogl{blue}]{default} The {olive}%s{default} have requested to start a competitive match. The {olive}%s{default} must accept with match command!", \
+								g_sTeamName[iTeam + 4], g_sTeamName[iTeam + 3]);
+		
 		if (args > 0) { // cfgfile specified
 			char sBuffer[128];
 			GetCmdArg(1, sBuffer, sizeof(sBuffer));

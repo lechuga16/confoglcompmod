@@ -9,7 +9,7 @@
 #include <sdkhooks>
 #define LEFT4FRAMEWORK_INCLUDE 1
 #include <left4framework>
-//#include <colors>
+#include <colors>
 //#undef REQUIRE_PLUGIN
 //#include <l4d2lib> //ItemTracking (commented out)
 

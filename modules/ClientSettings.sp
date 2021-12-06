@@ -154,10 +154,10 @@ public void _EnforceCliSettings_QueryReply(QueryCookie cookie, int client, ConVa
 				LogMessage("[Confogl] ClientSettings: Kicking %L for bad %s value (%f). Min: %d %f Max: %d %f", \
 									client, cvarName, fCvarVal, clsetting.CLSE_hasMin, clsetting.CLSE_min, clsetting.CLSE_hasMax, clsetting.CLSE_max);
 
-				PrintToChatAll("\x01[\x05Confogl\x01] Kicking \x04%L \x01for having an illegal value for \x04%s \x01(\x04%f\x01) !!!", \
+				/*PrintToChatAll("\x01[\x05Confogl\x01] Kicking \x04%L\x01 for having an illegal value for '\x04%s\x01' (\x04%f\x01) !!!", \
+									client, cvarName, fCvarVal);*/
+				CPrintToChatAll("{blue}[{default}Confogl{blue}] {olive}%L{default} was kicked for having an illegal value for '{green}%s{default}' {blue}({default}%f{blue})", \
 									client, cvarName, fCvarVal);
-				//CPrintToChatAll("{blue}[{default}Confogl{blue}] {olive}%L {default} was kicked for having an illegal value for {green}%s {blue}({default}%f{blue})",
-									//client, cvarName, fCvarVal); //rework
 
 				char kickMessage[256] = "Illegal Client Value for ";
 				Format(kickMessage, sizeof(kickMessage), "%s%s (%.2f)", kickMessage, cvarName, fCvarVal);
@@ -190,10 +190,10 @@ public void _EnforceCliSettings_QueryReply(QueryCookie cookie, int client, ConVa
 				LogMessage("[Confogl] ClientSettings: Kicking %L for bad %s value (%f). Min: %d %f Max: %d %f", \
 									client, cvarName, fCvarVal, clsetting[CLSE_hasMin], clsetting[CLSE_min], clsetting[CLSE_hasMax], clsetting[CLSE_max]);
 
-				PrintToChatAll("\x01[\x05Confogl\x01] Kicking \x04%L \x01for having an illegal value for \x04%s \x01(\x04%f\x01) !!!", \
-									client, cvarName, fCvarVal);
-				//CPrintToChatAll("{blue}[{default}Confogl{blue}] {olive}%L {default} was kicked for having an illegal value for {green}%s {blue}({default}%f{blue})",
-									//client, cvarName, fCvarVal); //rework
+				/*PrintToChatAll("\x01[\x05Confogl\x01] Kicking \x04%L\x01 for having an illegal value for '\x04%s\x01' (\x04%f\x01) !!!", \
+									client, cvarName, fCvarVal);*/
+				CPrintToChatAll("{blue}[{default}Confogl{blue}] {olive}%L{default} was kicked for having an illegal value for '{green}%s{default}' {blue}({default}%f{blue})", \
+									client, cvarName, fCvarVal); 
 
 				char kickMessage[256] = "Illegal Client Value for ";
 				Format(kickMessage, sizeof(kickMessage), "%s%s (%.2f)", kickMessage, cvarName, fCvarVal);
