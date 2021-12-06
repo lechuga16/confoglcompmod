@@ -46,7 +46,8 @@ void RM_OnModuleStart()
 	RM_hAutoLoad = CreateConVarEx("match_autoload", "0", "Has match mode start up automatically when a player connects and the server is not in match mode", _, true, 0.0, true, 1.0);
 	RM_hAutoCfg = CreateConVarEx("match_autoconfig", "", "Specify which config to load if the autoloader is enabled");
 	RM_hConfigFile_On = CreateConVarEx("match_execcfg_on", "confogl.cfg", "Execute this config file upon match mode starts and every map after that.");
-	RM_hConfigFile_Plugins = CreateConVarEx("match_execcfg_plugins", "confogl_plugins.cfg", "Execute this config file upon match mode starts. This will only get executed once and meant for plugins that needs to be loaded.");
+	//RM_hConfigFile_Plugins = CreateConVarEx("match_execcfg_plugins", "confogl_plugins.cfg", "Execute this config file upon match mode starts. This will only get executed once and meant for plugins that needs to be loaded."); //original
+	RM_hConfigFile_Plugins = CreateConVarEx("match_execcfg_plugins", "generalfixes.cfg;confogl_plugins.cfg;sharedplugins.cfg", "Execute this config file upon match mode starts. This will only get executed once and meant for plugins that needs to be loaded."); //rework
 	RM_hConfigFile_Off = CreateConVarEx("match_execcfg_off", "confogl_off.cfg", "Execute this config file upon match mode ends.");
 
 	//RegConsoleCmd("sm_match", RM_Cmd_Match);
@@ -118,7 +119,22 @@ static void RM_Match_Load()
 
 		RM_hReloaded.SetInt(1);
 		RM_hConfigFile_Plugins.GetString(sBuffer, sizeof(sBuffer));
-		ExecuteCfg(sBuffer);
+
+		//ExecuteCfg(sBuffer); //original
+		//rework
+		char sPieces[32][256];
+		int iNumPieces = ExplodeString(sBuffer, ";", sPieces, sizeof(sPieces), sizeof(sPieces[]));
+
+		// Unlocking and Unloading Plugins.
+		ServerCommand("sm plugins load_unlock");
+		ServerCommand("sm plugins unload_all");
+
+		// Loading Plugins.
+		for (int i = 0; i < iNumPieces; i++) {
+			ExecuteCfg(sPieces[i]);
+		}
+		//rework end
+
 		return;
 	}
 
@@ -140,10 +156,13 @@ static void RM_Match_Load()
 	RM_bIsMatchModeLoaded = true;
 	IsPluginEnabled(true, true);
 
-	PrintToChatAll("\x01[\x05Confogl\x01] Match mode loaded!");
+	PrintToChatAll("\x01[\x05Confogl\x01] Match mode loaded!"); //original
+	//CPrintToChatAll("{blue}[{default}Confogl{blue}] {default}Match mode loaded!"); //rework
 
 	if (!RM_bIsMapRestarted && RM_hDoRestart.BoolValue) {
-		PrintToChatAll("\x01[\x05Confogl\x01] Restarting map!");
+		PrintToChatAll("\x01[\x05Confogl\x01] Restarting map!"); //original
+		//CPrintToChatAll("{blue}[{default}Confogl{blue}] {default}Restarting map!"); //rework
+
 		CreateTimer(MAPRESTARTTIME, RM_Match_MapRestart_Timer);
 	}
 
@@ -157,16 +176,18 @@ static void RM_Match_Load()
 
 static void RM_Match_Unload(bool bForced = false)
 {
-	if (!IsHumansOnServer() || bForced) {
+	bool bIsHumansOnServer = IsHumansOnServer();
+
+	if (!bIsHumansOnServer || bForced) {
 		if (RM_DEBUG || IsDebugEnabled()) {
-			LogMessage("%s Match is no longer active, sb_all_bot_game reset to 0, IsHumansOnServer %b, bForced %b", RM_DEBUG_PREFIX, IsHumansOnServer(), bForced);
+			LogMessage("%s Match is no longer active, sb_all_bot_game reset to 0, IsHumansOnServer %b, bForced %b", RM_DEBUG_PREFIX, bIsHumansOnServer, bForced);
 		}
 
 		RM_bIsAMatchActive = false;
 		RM_hSbAllBotGame.SetInt(0);
 	}
 
-	if (IsHumansOnServer() && !bForced) {
+	if (bIsHumansOnServer && !bForced) {
 		return;
 	}
 
@@ -183,7 +204,8 @@ static void RM_Match_Unload(bool bForced = false)
 	Call_StartForward(RM_hFwdMatchUnload);
 	Call_Finish();
 
-	PrintToChatAll("\x01[\x05Confogl\x01] Match mode unloaded!");
+	PrintToChatAll("\x01[\x05Confogl\x01] Match mode unloaded!"); //original
+	//CPrintToChatAll("{blue}[{default}Confogl{blue}] {default}Match mode unloaded!"); //rework
 
 	RM_hConfigFile_Off.GetString(sBuffer, sizeof(sBuffer));
 	ExecuteCfg(sBuffer);
@@ -195,6 +217,8 @@ static void RM_Match_Unload(bool bForced = false)
 
 public Action RM_Match_MapRestart_Timer(Handle hTimer)
 {
+	ServerCommand("sm plugins load_lock"); //rework
+
 	if (RM_DEBUG || IsDebugEnabled()) {
 		LogMessage("%s Restarting map...", RM_DEBUG_PREFIX);
 	}
@@ -207,17 +231,25 @@ public Action RM_Match_MapRestart_Timer(Handle hTimer)
 	return Plugin_Stop;
 }
 
-static void RM_UpdateCfgOn(const char[] cfgfile)
+static bool RM_UpdateCfgOn(const char[] cfgfile, bool bIsPrint = true)
 {
 	if (SetCustomCfg(cfgfile)) {
-		PrintToChatAll("\x01[\x05Confogl\x01] Using \"\x04%s\x01\" config.", cfgfile);
+		PrintToChatAll("\x01[\x05Confogl\x01] Using \"\x04%s\x01\" config.", cfgfile); //original
+		//CPrintToChatAll("{blue}[{default}Confogl{blue}] {default}Loading '{olive}%s{default}'", cfgfile); //rework
 
 		if (RM_DEBUG || IsDebugEnabled()) {
 			LogMessage("%s Starting match on config %s", RM_DEBUG_PREFIX, cfgfile);
 		}
-	} else {
-		PrintToChatAll("\x01[\x05Confogl\x01] Config \"\x04%s\x01\" not found, using default config!", cfgfile);
+
+		return true;
 	}
+
+	if (bIsPrint) {
+		PrintToChatAll("\x01[\x05Confogl\x01] Config \"\x04%s\x01\" not found, using default config!", cfgfile);
+		//CPrintToChatAll("{blue}[{default}Confogl{blue}]{default} Config '{olive}%s{default}' not found, using default config!", cfgfile);
+	}
+
+	return false;
 }
 
 public Action RM_Cmd_ForceMatch(int client, int args)
@@ -230,12 +262,33 @@ public Action RM_Cmd_ForceMatch(int client, int args)
 		LogMessage("%s Match mode forced to load!", RM_DEBUG_PREFIX);
 	}
 
-	if (args > 0) { // cfgfile specified
-		char sBuffer[128];
-		GetCmdArg(1, sBuffer, sizeof(sBuffer));
-		RM_UpdateCfgOn(sBuffer);
-	} else {
-		SetCustomCfg("");
+	if (args < 1) {
+		//SetCustomCfg(""); //old code
+		//RM_Match_Load(); //old code
+
+		if (client == 0) {
+			PrintToServer("[Confogl] Please specify a config to load.");
+		} else {
+			PrintToChat(client, "\x01[\x05Confogl\x01] Please specify a \"\x04config\x01\" to load.");
+			//CPrintToChat(client, "{blue}[{default}Confogl{blue}] {default}Please specify a {olive}config {default}to load.");
+		}
+		return Plugin_Handled;
+	}
+
+	char sBuffer[128];
+	GetCmdArg(1, sBuffer, sizeof(sBuffer));
+
+	//RM_UpdateCfgOn(sBuffer); //old code
+
+	if (!RM_UpdateCfgOn(sBuffer, false)) {
+		if (client == 0) {
+			PrintToServer("[Confogl] Config %s not found!", sBuffer);
+		} else {
+			PrintToChat(client, "\x01[\x05Confogl\x01] Please specify a \"\x04%s\x01\" to load.", sBuffer);
+			//CPrintToChat(client, "{blue}[{default}Confogl{blue}] {default}Config {olive}%s{default} not found!", sBuffer);
+		}
+
+		return Plugin_Handled;
 	}
 
 	RM_Match_Load();
