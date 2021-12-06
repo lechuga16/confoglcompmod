@@ -46,6 +46,12 @@ static ConVar
 	SM_hTempMulti1 = null,
 	SM_hTempMulti2 = null;
 
+void SM_APL()
+{
+	CreateNative("LGO_IsScoremodEnabled", Native_IsScoremodEnabled);
+	CreateNative("LGO_GetScoremodBonus", Native_GetScoremodBonus);
+}
+
 void SM_OnModuleStart()
 {
 	SM_hEnable = CreateConVarEx("SM_enable", "1", "L4D2 Custom Scoring - Enable/Disable", _, true, 0.0, true, 1.0);
@@ -491,10 +497,24 @@ static int SM_CalculateSurvivalBonus()
 	return RoundToFloor(SM_CalculateAvgHealth() * SM_fMapMulti * SM_fHBRatio + 400 * SM_fMapMulti * SM_fSurvivalBonusRatio);
 }
 
-/*static int SM_CalculateScore()
+static int SM_CalculateScore()
 {
 	int iAliveCount = 0;
 	float fScore = SM_CalculateAvgHealth(iAliveCount);
 
 	return RoundToFloor(fScore * SM_fMapMulti * SM_fHBRatio + 400 * SM_fMapMulti * SM_fSurvivalBonusRatio) * iAliveCount;
-}*/
+}
+
+public int Native_IsScoremodEnabled(Handle plugin, int numParams)
+{
+	return (SM_bModuleIsEnabled && IsPluginEnabled());
+}
+
+public int Native_GetScoremodBonus(Handle plugin, int numParams)
+{
+	if (!SM_bModuleIsEnabled || !IsPluginEnabled()) {
+		return -1;
+	}
+
+	return SM_CalculateScore();
+}

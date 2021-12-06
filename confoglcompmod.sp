@@ -3,7 +3,7 @@
 
 #define DEBUG_ALL					0
 
-#define PLUGIN_VERSION				"2.2.9"
+#define PLUGIN_VERSION				"2.2.9.1"
 
 // Using these macros, you can disable unnecessary modules,
 // and they will not be included in the plugin at compile time,
@@ -136,6 +136,10 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 
 #if MODULE_MAPINFO
 	MI_APL(); //MapInfo
+#endif
+
+#if MODULE_SCOREMOD
+	SM_APL();
 #endif
 
 	//Other
