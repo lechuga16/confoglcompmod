@@ -22,10 +22,10 @@
 #define MODULE_BOSSSPAWNING			1 //BossSpawning
 #define MODULE_CLIENTSETTINGS		1 //ClientSettings
 #define MODULE_ITEMTRACKING			1 //ItemTracking
-#define MODULE_WATERSLOWDOWN		1 //WaterSlowdown (pmelite uses it)
-#define MODULE_UNPROHIBITBOSSES		1 //UnprohibitBosses (this is deprecated and disabled)
-#define MODULE_ENTITYREMOVER		1 //EntityRemover (this is deprecated and disabled)
-#define MODULE_WEAPONCUSTOMIZATION	1 //WeaponCustomization (this is deprecated and disabled)
+#define MODULE_WATERSLOWDOWN		1 //WaterSlowdown (config 'pmelite' uses it)
+#define MODULE_UNPROHIBITBOSSES		0 //UnprohibitBosses (duplicate code, plugin 'bossspawningfix' does the same).
+#define MODULE_ENTITYREMOVER		0 //EntityRemover (the same can be done with the extension 'stripper').
+#define MODULE_WEAPONCUSTOMIZATION	0 //WeaponCustomization (this is deprecated and disabled, plugin 'l4d_weapon_limits' does the same).
 
 #include <sourcemod>
 #include <sdktools>
