@@ -1,8 +1,31 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-#define DEBUG_ALL		0
-#define PLUGIN_VERSION	"2.2.8"
+#define DEBUG_ALL					0
+
+#define PLUGIN_VERSION				"2.2.9"
+
+// Using these macros, you can disable unnecessary modules,
+// and they will not be included in the plugin at compile time,
+// to disable, specify 0 for the required module.
+#define MODULE_MAPINFO				1 //MapInfo
+#define MODULE_WEAPONINFORMATION	1 //WeaponInformation
+#define MODULE_REQMATCH				1 //ReqMatch
+#define MODULE_CVARSETTINGS			1 //CvarSettings
+#define MODULE_GHOSTTANK			1 //GhostTank
+#define MODULE_UNRESERVELOBBY		1 //UnreserveLobby
+#define MODULE_GHOSTWARP			1 //GhostWarp
+#define MODULE_PASSWORDSYSTEM		1 //PasswordSystem
+#define MODULE_BOTKICK				1 //BotKick
+#define MODULE_SCOREMOD				1 //ScoreMod
+#define MODULE_FINALESPAWN			1 //FinaleSpawn
+#define MODULE_BOSSSPAWNING			1 //BossSpawning
+#define MODULE_CLIENTSETTINGS		1 //ClientSettings
+#define MODULE_ITEMTRACKING			1 //ItemTracking
+#define MODULE_WATERSLOWDOWN		1 //WaterSlowdown (pmelite uses it)
+#define MODULE_UNPROHIBITBOSSES		1 //UnprohibitBosses (this is deprecated and disabled)
+#define MODULE_ENTITYREMOVER		1 //EntityRemover (this is deprecated and disabled)
+#define MODULE_WEAPONCUSTOMIZATION	1 //WeaponCustomization (this is deprecated and disabled)
 
 #include <sourcemod>
 #include <sdktools>
@@ -20,38 +43,77 @@
 #include "confoglcompmod/includes/configs.sp"
 #include "confoglcompmod/includes/customtags.inc"
 
-#include "confoglcompmod/MapInfo.sp"
-#include "confoglcompmod/WeaponInformation.sp"
-#include "confoglcompmod/ReqMatch.sp"
-#include "confoglcompmod/CvarSettings.sp"
-#include "confoglcompmod/GhostTank.sp"
-#include "confoglcompmod/WaterSlowdown.sp"
-#include "confoglcompmod/UnreserveLobby.sp"
-#include "confoglcompmod/GhostWarp.sp"
-#include "confoglcompmod/UnprohibitBosses.sp"
-#include "confoglcompmod/PasswordSystem.sp"
-#include "confoglcompmod/BotKick.sp"
-#include "confoglcompmod/EntityRemover.sp"
-#include "confoglcompmod/ScoreMod.sp"
-#include "confoglcompmod/FinaleSpawn.sp"
-#include "confoglcompmod/BossSpawning.sp"
-#include "confoglcompmod/WeaponCustomization.sp"
-#include "confoglcompmod/ClientSettings.sp"
-#include "confoglcompmod/ItemTracking.sp"
+#if MODULE_MAPINFO
+	#include "confoglcompmod/MapInfo.sp"
+#endif
 
-public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
-{
-	//Plugin functions
-	Configs_APL(); //configs
+#if MODULE_WEAPONINFORMATION
+	#include "confoglcompmod/WeaponInformation.sp"
+#endif
 
-	//Modules
-	RM_APL(); //ReqMatch
-	MI_APL(); //MapInfo
+#if MODULE_REQMATCH
+	#include "confoglcompmod/ReqMatch.sp"
+#endif
 
-	//Other
-	RegPluginLibrary("confogl");
-	return APLRes_Success;
-}
+#if MODULE_CVARSETTINGS
+	#include "confoglcompmod/CvarSettings.sp"
+#endif
+
+#if MODULE_GHOSTTANK
+	#include "confoglcompmod/GhostTank.sp"
+#endif
+
+#if MODULE_UNRESERVELOBBY
+	#include "confoglcompmod/UnreserveLobby.sp"
+#endif
+
+#if MODULE_GHOSTWARP
+	#include "confoglcompmod/GhostWarp.sp"
+#endif
+
+#if MODULE_PASSWORDSYSTEM
+	#include "confoglcompmod/PasswordSystem.sp"
+#endif
+
+#if MODULE_BOTKICK
+	#include "confoglcompmod/BotKick.sp"
+#endif
+
+#if MODULE_SCOREMOD
+	#include "confoglcompmod/ScoreMod.sp"
+#endif
+
+#if MODULE_FINALESPAWN
+	#include "confoglcompmod/FinaleSpawn.sp"
+#endif
+
+#if MODULE_BOSSSPAWNING
+	#include "confoglcompmod/BossSpawning.sp"
+#endif
+
+#if MODULE_CLIENTSETTINGS
+	#include "confoglcompmod/ClientSettings.sp"
+#endif
+
+#if MODULE_ITEMTRACKING
+	#include "confoglcompmod/ItemTracking.sp"
+#endif
+
+#if MODULE_WATERSLOWDOWN
+	#include "confoglcompmod/WaterSlowdown.sp"
+#endif
+
+#if MODULE_UNPROHIBITBOSSES
+	#include "confoglcompmod/UnprohibitBosses.sp"
+#endif
+
+#if MODULE_ENTITYREMOVER
+	#include "confoglcompmod/EntityRemover.sp"
+#endif
+
+#if MODULE_WEAPONCUSTOMIZATION
+	#include "confoglcompmod/WeaponCustomization.sp"
+#endif
 
 public Plugin myinfo =
 {
@@ -59,8 +121,27 @@ public Plugin myinfo =
 	author = "Confogl Team, A1m`",
 	description = "A competitive mod for L4D2",
 	version = PLUGIN_VERSION,
-	url = "https://github.com/L4D-Community/confoglcompmod"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
+
+public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
+{
+	//Plugin functions
+	Configs_APL(); //configs
+
+	//Modules
+#if MODULE_REQMATCH
+	RM_APL(); //ReqMatch
+#endif
+
+#if MODULE_MAPINFO
+	MI_APL(); //MapInfo
+#endif
+
+	//Other
+	RegPluginLibrary("confogl");
+	return APLRes_Success;
+}
 
 public void OnPluginStart()
 {
@@ -71,24 +152,77 @@ public void OnPluginStart()
 	SI_OnModuleStart(); //survivorindex
 
 	//Modules
+#if MODULE_MAPINFO
 	MI_OnModuleStart(); //MapInfo
+#endif
+
+#if MODULE_WEAPONINFORMATION
 	WI_OnModuleStart(); //WeaponInformation
+#endif
+
+#if MODULE_REQMATCH
 	RM_OnModuleStart(); //ReqMatch
+#endif
+
+#if MODULE_CVARSETTINGS
 	CVS_OnModuleStart(); //CvarSettings
+#endif
+
+#if MODULE_PASSWORDSYSTEM
 	PS_OnModuleStart(); //PasswordSystem
+#endif
+
+#if MODULE_UNRESERVELOBBY
 	UL_OnModuleStart(); //UnreserveLobby
+#endif
+
+#if MODULE_ENTITYREMOVER
 	ER_OnModuleStart(); //EntityRemover
+#endif
+
+#if MODULE_GHOSTWARP
 	GW_OnModuleStart(); //GhostWarp
+#endif
+
+#if MODULE_WATERSLOWDOWN
 	WS_OnModuleStart(); //WaterSlowdown
+#endif
+
+#if MODULE_GHOSTTANK
 	GT_OnModuleStart(); //GhostTank
+#endif
+
+#if MODULE_UNPROHIBITBOSSES
 	UB_OnModuleStart(); //UnprohibitBosses
+#endif
+
+#if MODULE_BOTKICK
 	BK_OnModuleStart(); //BotKick
+#endif
+
+#if MODULE_SCOREMOD
 	SM_OnModuleStart(); //ScoreMod
+#endif
+
+#if MODULE_FINALESPAWN
 	FS_OnModuleStart(); //FinaleSpawn
+#endif
+
+#if MODULE_BOSSSPAWNING
 	BS_OnModuleStart(); //BossSpawning
+#endif
+
+#if MODULE_WEAPONCUSTOMIZATION
 	WC_OnModuleStart(); //WeaponCustomization
+#endif
+
+#if MODULE_CLIENTSETTINGS
 	CLS_OnModuleStart(); //ClientSettings
+#endif
+
+#if MODULE_ITEMTRACKING
 	IT_OnModuleStart(); //ItemTracking
+#endif
 
 	//Other
 	AddCustomServerTag("confogl", true);
@@ -97,48 +231,99 @@ public void OnPluginStart()
 public void OnPluginEnd()
 {
 	//Modules
+#if MODULE_CVARSETTINGS
 	CVS_OnModuleEnd(); //CvarSettings
+#endif
+
+#if MODULE_PASSWORDSYSTEM
 	PS_OnModuleEnd(); //PasswordSystem
+#endif
+
+#if MODULE_ENTITYREMOVER
 	ER_OnModuleEnd(); //EntityRemover
+#endif
+
+#if MODULE_SCOREMOD
 	SM_OnModuleEnd(); //ScoreMod
+#endif
+
+#if MODULE_WATERSLOWDOWN
 	WS_OnModuleEnd(); //WaterSlowdown
+#endif
+
+#if MODULE_MAPINFO
 	MI_OnModuleEnd(); //MapInfo
+#endif
 
 	//Other
 	RemoveCustomServerTag("confogl");
 }
 
+#if MODULE_MAPINFO || MODULE_REQMATCH || MODULE_SCOREMOD || MODULE_BOSSSPAWNING || MODULE_ITEMTRACKING
 public void OnMapStart()
 {
 	//Modules
+#if MODULE_MAPINFO
 	MI_OnMapStart(); //MapInfo
-	RM_OnMapStart(); //ReqMatch
-	SM_OnMapStart(); //ScoreMod
-	BS_OnMapStart(); //BossSpawning
-	IT_OnMapStart(); //ItemTracking
-}
+#endif
 
+#if MODULE_REQMATCH
+	RM_OnMapStart(); //ReqMatch
+#endif
+
+#if MODULE_SCOREMOD
+	SM_OnMapStart(); //ScoreMod
+#endif
+
+#if MODULE_BOSSSPAWNING
+	BS_OnMapStart(); //BossSpawning
+#endif
+
+#if MODULE_ITEMTRACKING
+	IT_OnMapStart(); //ItemTracking
+#endif
+}
+#endif
+
+#if MODULE_MAPINFO || MODULE_WEAPONINFORMATION || MODULE_PASSWORDSYSTEM || MODULE_WATERSLOWDOWN
 public void OnMapEnd()
 {
 	//Modules
+#if MODULE_MAPINFO
 	MI_OnMapEnd(); //MapInfo
-	WI_OnMapEnd(); //WeaponInformation
-	PS_OnMapEnd(); //PasswordSystem
-	WS_OnMapEnd(); //WaterSlowdown
-}
+#endif
 
+#if MODULE_WEAPONINFORMATION
+	WI_OnMapEnd(); //WeaponInformation
+#endif
+
+#if MODULE_PASSWORDSYSTEM
+	PS_OnMapEnd(); //PasswordSystem
+#endif
+
+#if MODULE_WATERSLOWDOWN
+	WS_OnMapEnd(); //WaterSlowdown
+#endif
+}
+#endif
+
+#if MODULE_CVARSETTINGS
 public void OnConfigsExecuted()
 {
 	//Modules
 	CVS_OnConfigsExecuted(); //CvarSettings
 }
+#endif
 
+#if MODULE_REQMATCH
 public void OnClientDisconnect(int client)
 {
 	//Modules
 	RM_OnClientDisconnect(client); //ReqMatch
 }
+#endif
 
+#if MODULE_BOTKICK
 public bool OnClientConnect(int client, char[] rejectmsg, int maxlen)
 {
 	//Modules
@@ -148,23 +333,41 @@ public bool OnClientConnect(int client, char[] rejectmsg, int maxlen)
 
 	return true;
 }
+#endif
 
+#if MODULE_REQMATCH || MODULE_UNRESERVELOBBY || MODULE_PASSWORDSYSTEM || MODULE_FINALESPAWN
 public void OnClientPutInServer(int client)
 {
 	//Modules
+#if MODULE_REQMATCH
 	RM_OnClientPutInServer(); //ReqMatch
+#endif
+
+#if MODULE_UNRESERVELOBBY
 	UL_OnClientPutInServer(); //UnreserveLobby
+#endif
+
+#if MODULE_PASSWORDSYSTEM
 	PS_OnClientPutInServer(client); //PasswordSystem
-	FS_OnOnClientPutInServer(client); //FinaleSpawn
+#endif
+
+#if MODULE_FINALESPAWN
+	FS_OnClientPutInServer(client); // FinaleSpawn
+#endif
 }
+#endif
 
 //Hot functions =)
+
+#if MODULE_WATERSLOWDOWN
 public void OnGameFrame()
 {
 	//Modules
 	WS_OnGameFrame(); //WaterSlowdown
 }
+#endif
 
+#if MODULE_GHOSTWARP
 public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3], float angles[3], int &weapon, \
 									int &subtype, int &cmdnum, int &tickcount, int &seed, int mouse[2])
 {
@@ -175,8 +378,11 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 
 	return Plugin_Continue;
 }
+#endif
 
 //Left4Dhooks or Left4Downtown functions
+
+#if MODULE_GHOSTTANK
 public Action L4D_OnCThrowActivate(int ability)
 {
 	//Modules
@@ -186,7 +392,9 @@ public Action L4D_OnCThrowActivate(int ability)
 
 	return Plugin_Continue;
 }
+#endif
 
+#if MODULE_GHOSTTANK
 public Action L4D_OnSpawnTank(const float vector[3], const float qangle[3])
 {
 	//Modules
@@ -196,13 +404,17 @@ public Action L4D_OnSpawnTank(const float vector[3], const float qangle[3])
 
 	return Plugin_Continue;
 }
+#endif
 
+#if MODULE_BOSSSPAWNING
 public void L4D_OnSpawnTank_Post(int client, const float vecPos[3], const float vecAng[3])
 {
 	//Modules
 	BS_OnTankSpawnPost_Forward(); //BossSpawning
 }
+#endif
 
+#if MODULE_GHOSTTANK
 public Action L4D_OnSpawnMob(int &amount)
 {
 	//Modules
@@ -212,7 +424,9 @@ public Action L4D_OnSpawnMob(int &amount)
 
 	return Plugin_Continue;
 }
+#endif
 
+#if MODULE_GHOSTTANK
 public Action L4D_OnTryOfferingTankBot(int tank_index, bool &enterStasis)
 {
 	//Modules
@@ -222,7 +436,9 @@ public Action L4D_OnTryOfferingTankBot(int tank_index, bool &enterStasis)
 
 	return Plugin_Continue;
 }
+#endif
 
+#if MODULE_UNPROHIBITBOSSES
 public Action L4D_OnGetMissionVSBossSpawning(float &spawn_pos_min, float &spawn_pos_max, float &tank_chance, float &witch_chance)
 {
 	//Modules
@@ -232,7 +448,9 @@ public Action L4D_OnGetMissionVSBossSpawning(float &spawn_pos_min, float &spawn_
 
 	return Plugin_Continue;
 }
+#endif
 
+#if MODULE_UNPROHIBITBOSSES
 public Action L4D_OnGetScriptValueInt(const char[] key, int &retVal)
 {
 	//Modules
@@ -242,6 +460,7 @@ public Action L4D_OnGetScriptValueInt(const char[] key, int &retVal)
 
 	return Plugin_Continue;
 }
+#endif
 
 public Action L4D_OnFirstSurvivorLeftSafeArea(int client)
 {

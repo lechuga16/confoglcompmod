@@ -39,7 +39,7 @@ public void FS_ConVarChange(ConVar hConVar, const char[] sOldValue, const char[]
 	FS_bEnabled = FS_hEnabled.BoolValue;
 }
 
-void FS_OnOnClientPutInServer(int client)
+void FS_OnClientPutInServer(int client)
 {
 	SDKHook(client, SDKHook_PreThinkPost, HookCallback);
 }
