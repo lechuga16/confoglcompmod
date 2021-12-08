@@ -3,7 +3,7 @@
 
 #define DEBUG_ALL					0
 
-#define PLUGIN_VERSION				"2.2.9.1"
+#define PLUGIN_VERSION				"2.2.9.2"
 
 // Using these macros, you can disable unnecessary modules,
 // and they will not be included in the plugin at compile time,
@@ -154,6 +154,7 @@ public void OnPluginStart()
 	Debug_OnModuleStart(); //debug
 	Configs_OnModuleStart(); //configs
 	SI_OnModuleStart(); //survivorindex
+	CT_OnModuleStart(); //customtags
 
 	//Modules
 #if MODULE_MAPINFO
@@ -229,7 +230,7 @@ public void OnPluginStart()
 #endif
 
 	//Other
-	AddCustomServerTag("confogl", true);
+	AddCustomServerTag("confogl");
 }
 
 public void OnPluginEnd()

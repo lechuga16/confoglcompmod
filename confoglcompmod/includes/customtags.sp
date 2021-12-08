@@ -21,24 +21,16 @@ static stock ConVar
 static stock ArrayList
 	custom_tags = null;
 
-stock void AddCustomServerTag(const char[] tag, bool force = false)
+void CT_OnModuleStart()
 {
-	if (sv_tags == null && (sv_tags = FindConVar("sv_tags")) == null) {
-		// game doesn't support sv_tags
-		return;
-	}
+	custom_tags = new ArrayList(ByteCountToCells(SV_TAG_SIZE));
 
-	if (!force
-		&& (engine_version != Engine_Unknown || (engine_version = GetEngineVersion()) != Engine_Unknown)
-		&& engine_version >= Engine_Left4Dead2
-	) {
-		return;
-	}
+	sv_tags = FindConVar("sv_tags");
+}
 
-	if (custom_tags == null) {
-		custom_tags = new ArrayList(SV_TAG_SIZE);
-		custom_tags.PushString(tag);
-	} else if (custom_tags.FindString(tag) == -1) {
+stock void AddCustomServerTag(const char[] tag)
+{
+	if (custom_tags.FindString(tag) == -1) {
 		custom_tags.PushString(tag);
 	}
 
@@ -70,17 +62,9 @@ stock void AddCustomServerTag(const char[] tag, bool force = false)
 
 stock void RemoveCustomServerTag(const char[] tag)
 {
-	if (sv_tags == null && (sv_tags = FindConVar("sv_tags")) == null) {
-		// game doesn't support sv_tags
-		return;
-	}
-
-	// we wouldn't have to check this if people aren't removing before adding, but... you know...
-	if (custom_tags != null) {
-		int idx = custom_tags.FindString(tag);
-		if (idx > -1) {
-			custom_tags.Erase(idx);
-		}
+	int idx = custom_tags.FindString(tag);
+	if (idx > -1) {
+		custom_tags.Erase(idx);
 	}
 
 	char current_tags[SV_TAG_SIZE];
