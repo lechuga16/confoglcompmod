@@ -3,6 +3,8 @@
 #endif
 #define __unreserve_lobby_included
 
+#define UL_MODULE_NAME			"UnreserveLobby"
+
 static ConVar
 	UL_hEnable = null;
 

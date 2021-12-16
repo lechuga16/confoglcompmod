@@ -3,8 +3,10 @@
 #endif
 #define __cvar_settings_included
 
-#define CVARS_DEBUG			0
-#define CVS_CVAR_MAXLEN		64
+#define CVS_MODULE_NAME			"CvarSettings"
+
+#define CVARS_DEBUG				0
+#define CVS_CVAR_MAXLEN			64
 
 #if SOURCEMOD_V_MINOR > 9
 enum struct CVSEntry
@@ -68,7 +70,7 @@ public Action CVS_SetCvars_Cmd(int args)
 	}
 
 #if CVARS_DEBUG
-	LogMessage("[Confogl] CvarSettings: No longer accepting new ConVars");
+	LogMessage("[%s] No longer accepting new ConVars", CVS_MODULE_NAME);
 #endif
 
 	SetEnforcedCvars();
@@ -85,7 +87,7 @@ public Action CVS_AddCvar_Cmd(int args)
 		if (IsDebugEnabled()) {
 			char cmdbuf[MAX_NAME_LENGTH];
 			GetCmdArgString(cmdbuf, sizeof(cmdbuf));
-			LogError("[Confogl] Invalid Cvar Add: %s", cmdbuf);
+			Debug_LogError(CVS_MODULE_NAME, "Invalid Cvar Add: %s", cmdbuf);
 		}
 
 		return Plugin_Handled;
@@ -277,7 +279,7 @@ static void SetEnforcedCvars()
 		#if CVARS_DEBUG
 			char debug_buffer[CVS_CVAR_MAXLEN];
 			(cvsetting.CVSE_cvar).GetName(debug_buffer, sizeof(debug_buffer));
-			LogMessage("cvar = %s, newval = %s", debug_buffer, cvsetting.CVSE_newval);
+			LogMessage("[%s] cvar = %s, newval = %s", CVS_MODULE_NAME, debug_buffer, cvsetting.CVSE_newval);
 		#endif
 
 		(cvsetting.CVSE_cvar).SetString(cvsetting.CVSE_newval);
@@ -291,7 +293,7 @@ static void SetEnforcedCvars()
 		#if CVARS_DEBUG
 			char debug_buffer[CVS_CVAR_MAXLEN];
 			cvsetting[CVSE_cvar].GetName(debug_buffer, sizeof(debug_buffer));
-			LogMessage("cvar = %s, newval = %s", debug_buffer, cvsetting[CVSE_newval]);
+			LogMessage("[%s] cvar = %s, newval = %s", CVS_MODULE_NAME, debug_buffer, cvsetting[CVSE_newval]);
 		#endif
 
 		cvsetting[CVSE_cvar].SetString(cvsetting[CVSE_newval]);
@@ -303,25 +305,25 @@ static void AddCvar(const char[] cvar, const char[] newval)
 {
 	if (bTrackingStarted) {
 		#if CVARS_DEBUG
-			LogMessage("[Confogl] CvarSettings: Attempt to track new cvar %s during a match!", cvar);
+			LogMessage("[%s] Attempt to track new cvar %s during a match!", CVS_MODULE_NAME, cvar);
 		#endif
 		return;
 	}
 
 	if (strlen(cvar) >= CVS_CVAR_MAXLEN) {
-		LogError("[Confogl] CvarSettings: CVar Specified (%s) is longer than max cvar/value length (%d)", cvar, CVS_CVAR_MAXLEN);
+		Debug_LogError(CVS_MODULE_NAME, "CVar Specified (%s) is longer than max cvar/value length (%d)", cvar, CVS_CVAR_MAXLEN);
 		return;
 	}
 
 	if (strlen(newval) >= CVS_CVAR_MAXLEN) {
-		LogError("[Confogl] CvarSettings: New Value Specified (%s) is longer than max cvar/value length (%d)", newval, CVS_CVAR_MAXLEN);
+		Debug_LogError(CVS_MODULE_NAME, "New Value Specified (%s) is longer than max cvar/value length (%d)", newval, CVS_CVAR_MAXLEN);
 		return;
 	}
 
 	ConVar newCvar = FindConVar(cvar);
 
 	if (newCvar == null) {
-		LogError("[Confogl] CvarSettings: Could not find CVar specified (%s)", cvar);
+		Debug_LogError(CVS_MODULE_NAME, "Could not find CVar specified (%s)", cvar);
 		return;
 	}
 
@@ -337,7 +339,7 @@ static void AddCvar(const char[] cvar, const char[] newval)
 		(newEntry.CVSE_cvar).GetName(cvarBuffer, CVS_CVAR_MAXLEN);
 
 		if (strcmp(cvar, cvarBuffer, false) == 0) {
-			LogError("[Confogl] CvarSettings: Attempt to track ConVar %s, which is already being tracked.", cvar);
+			Debug_LogError(CVS_MODULE_NAME, "Attempt to track ConVar %s, which is already being tracked.", cvar);
 			return;
 		}
 	}
@@ -351,7 +353,7 @@ static void AddCvar(const char[] cvar, const char[] newval)
 	newCvar.AddChangeHook(CVS_ConVarChange);
 
 #if CVARS_DEBUG
-	LogMessage("[Confogl] CvarSettings: cvar = %s, newval = %s, oldval = %s", cvar, newval, cvarBuffer);
+	LogMessage("[%s] cvar = %s, newval = %s, oldval = %s", CVS_MODULE_NAME, cvar, newval, cvarBuffer);
 #endif
 
 	CvarSettingsArray.PushArray(newEntry, sizeof(CVSEntry));
@@ -364,7 +366,7 @@ static void AddCvar(const char[] cvar, const char[] newval)
 		newEntry[CVSE_cvar].GetName(cvarBuffer, CVS_CVAR_MAXLEN);
 
 		if (strcmp(cvar, cvarBuffer, false) == 0) {
-			LogError("[Confogl] CvarSettings: Attempt to track ConVar %s, which is already being tracked.", cvar);
+			Debug_LogError(CVS_MODULE_NAME, "Attempt to track ConVar %s, which is already being tracked.", cvar);
 			return;
 		}
 	}
@@ -378,7 +380,7 @@ static void AddCvar(const char[] cvar, const char[] newval)
 	newCvar.AddChangeHook(CVS_ConVarChange);
 
 #if CVARS_DEBUG
-	LogMessage("[Confogl] CvarSettings: cvar = %s, newval = %s, oldval = %s", cvar, newval, cvarBuffer);
+	LogMessage("[%s] cvar = %s, newval = %s, oldval = %s", CVS_MODULE_NAME, cvar, newval, cvarBuffer);
 #endif
 
 	CvarSettingsArray.PushArray(newEntry[0], sizeof(newEntry));
@@ -394,6 +396,5 @@ public void CVS_ConVarChange(ConVar hConVar, const char[] sOldValue, const char[
 		PrintToServer("[Confogl] Tracked Server CVar '%s' changed from '%s' to '%s' !!!", sName, sOldValue, sNewValue);
 		//PrintToChatAll("[Confogl] Tracked Server CVar '%s' changed from '%s' to '%s' !!!", sName, sOldValue, sNewValue);
 		CPrintToChatAll("{blue}[{default}Confogl{blue}]{default} Tracked Server CVar '{green}%s{default}' changed from '{blue}%s{default}' to '{blue}%s{default}' !!!", sName, sOldValue, sNewValue);
-
 	}
 }

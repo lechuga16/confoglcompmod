@@ -3,6 +3,8 @@
 #endif
 #define __item_tracking_included
 
+#define IT_MODULE_NAME			"ItemTracking"
+
 // Item lists for tracking/decoding/etc
 enum /*ItemList*/
 {
@@ -230,7 +232,7 @@ public Action IT_RoundStartTimer(Handle hTimer)
 static void EnumAndElimSpawns()
 {
 	if (IsDebugEnabled()) {
-		LogMessage("[IT] Resetting g_iSaferoomCount and Enumerating and eliminating spawns...");
+		LogMessage("[%s] Resetting g_iSaferoomCount and Enumerating and eliminating spawns...", IT_MODULE_NAME);
 	}
 
 	EnumerateSpawns();
@@ -297,7 +299,7 @@ static void KillRegisteredItems()
 				// Kill items we're tracking;
 				KillEntity(i);
 				/*if (!AcceptEntityInput(i, "kill")) {
-					LogError("[IT] Error killing instance of item %s", g_sItemNames[itemindex][IN_longname]);
+					Debug_LogError(IT_MODULE_NAME, "Error killing instance of item %s", g_sItemNames[itemindex][IN_longname]);
 				}*/
 			}
 		}
@@ -333,8 +335,8 @@ static void SpawnItems()
 			wepid = GetWeaponIDFromItemList(itemidx);
 
 			if (IsDebugEnabled()) {
-				LogMessage("[IT] Spawning an instance of item %s (%d, wepid %d), number %d, at %.02f %.02f %.02f", \
-								g_sItemNames[itemidx][IN_officialname], itemidx, wepid, idx, origins[0], origins[1], origins[2]);
+				LogMessage("[%s] Spawning an instance of item %s (%d, wepid %d), number %d, at %.02f %.02f %.02f", \
+								IT_MODULE_NAME, g_sItemNames[itemidx][IN_officialname], itemidx, wepid, idx, origins[0], origins[1], origins[2]);
 			}
 
 			itement = CreateEntityByName("weapon_spawn");
@@ -377,7 +379,7 @@ static void EnumerateSpawns()
 				} else {
 					KillEntity(i);
 					/*if (!AcceptEntityInput(i, "kill")) {
-						LogError("[IT] Error killing instance of item %s", g_sItemNames[itemindex][IN_longname]);
+						Debug_LogError(IT_MODULE_NAME, "Error killing instance of item %s", g_sItemNames[itemindex][IN_longname]);
 					}*/
 				}
 			} else if (IsEntityInSaferoom(i, END_SAFEROOM)) {
@@ -386,24 +388,24 @@ static void EnumerateSpawns()
 				} else {
 					KillEntity(i);
 					/*if (!AcceptEntityInput(i, "kill")) {
-						LogError("[IT] Error killing instance of item %s", g_sItemNames[itemindex][IN_longname]);
+						Debug_LogError(IT_MODULE_NAME, "Error killing instance of item %s", g_sItemNames[itemindex][IN_longname]);
 					}*/
 				}
 			} else {
 				int mylimit = g_iItemLimits[itemindex];
 				if (IsDebugEnabled()) {
-					LogMessage("[IT] Found an instance of item %s (%d), with limit %d", g_sItemNames[itemindex][IN_longname], itemindex, mylimit);
+					LogMessage("[%s] Found an instance of item %s (%d), with limit %d", IT_MODULE_NAME, g_sItemNames[itemindex][IN_longname], itemindex, mylimit);
 				}
 
 				// Item limit is zero, justkill it as we find it
 				if (!mylimit) {
 					if (IsDebugEnabled()) {
-						LogMessage("[IT] Killing spawn");
+						LogMessage("[%s] Killing spawn", IT_MODULE_NAME);
 					}
 
 					KillEntity(i);
 					/*if (!AcceptEntityInput(i, "kill")) {
-						LogError("[IT] Error killing instance of item %s", g_sItemNames[itemindex][IN_longname]);
+						Debug_LogError(IT_MODULE_NAME, "Error killing instance of item %s", g_sItemNames[itemindex][IN_longname]);
 					}*/
 				} else {
 					// Store entity, angles, origin
@@ -417,7 +419,7 @@ static void EnumerateSpawns()
 					GetEntPropVector(i, Prop_Send, "m_angRotation", angles);
 
 					if (IsDebugEnabled()) {
-						LogMessage("[IT] Saving spawn #%d at %.02f %.02f %.02f", g_hItemSpawns[itemindex].Length, origins[0], origins[1], origins[2]);
+						LogMessage("[%s] Saving spawn #%d at %.02f %.02f %.02f", IT_MODULE_NAME, g_hItemSpawns[itemindex].Length, origins[0], origins[1], origins[2]);
 					}
 
 					SetSpawnOrigins(origins, curitem);
@@ -455,7 +457,7 @@ static void RemoveToLimits()
 				killidx = GetURandomIntRange(0, (g_hItemSpawns[itemidx].Length - 1));
 
 				if (IsDebugEnabled()) {
-					LogMessage("[IT] Killing randomly chosen %s (%d) #%d", g_sItemNames[itemidx][IN_longname], itemidx, killidx);
+					LogMessage("[%s] Killing randomly chosen %s (%d) #%d", IT_MODULE_NAME, g_sItemNames[itemidx][IN_longname], itemidx, killidx);
 				}
 
 				#if SOURCEMOD_V_MINOR > 9
@@ -465,7 +467,7 @@ static void RemoveToLimits()
 						KillEntity(curitem.IT_entity);
 
 						/*if (!AcceptEntityInput(curitem.IT_entity, "kill")) {
-							LogError("[IT] Error killing instance of item %s", g_sItemNames[itemidx][IN_longname]);
+							Debug_LogError(IT_MODULE_NAME, "Error killing instance of item %s", g_sItemNames[itemidx][IN_longname]);
 						}*/
 					}
 				#else
@@ -475,7 +477,7 @@ static void RemoveToLimits()
 						KillEntity(curitem[IT_entity]);
 
 						/*if (!AcceptEntityInput(curitem[IT_entity], "kill")) {
-							LogError("[IT] Error killing instance of item %s", g_sItemNames[itemidx][IN_longname]);
+							Debug_LogError(IT_MODULE_NAME, "Error killing instance of item %s", g_sItemNames[itemidx][IN_longname]);
 						}*/
 					}
 				#endif

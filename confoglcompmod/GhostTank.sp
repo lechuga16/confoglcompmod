@@ -3,6 +3,8 @@
 #endif
 #define __ghost_tank_included
 
+#define GT_MODULE_NAME				"GhostTank"
+
 #define THROWRANGE					99999999.0
 #define FIREIMMUNITY_TIME			5.0
 
@@ -79,7 +81,7 @@ Action GT_OnCThrowActivate()
 		&& GetClientButtons(g_iGT_TankClient) & IN_ATTACK
 	) {
 		if (IsDebugEnabled()) {
-			LogMessage("[GT] Blocking Haymaker on %L", g_iGT_TankClient);
+			LogMessage("[%s] Blocking Haymaker on %L", GT_MODULE_NAME, g_iGT_TankClient);
 		}
 
 		return Plugin_Handled;
@@ -93,8 +95,8 @@ Action GT_OnSpawnMob_Forward(int &amount)
 	// quick fix. needs normalize_hordes 1
 	if (IsPluginEnabled()) {
 		if (IsDebugEnabled()) {
-			LogMessage("[GT] SpawnMob(%d), HordesDisabled: %d TimerDuration: %f Minimum: %f Remaining: %f", \
-							amount, g_bGT_HordesDisabled, L4D2_CTimerGetCountdownDuration(L4D2CT_MobSpawnTimer), \
+			LogMessage("[%s] SpawnMob(%d), HordesDisabled: %d TimerDuration: %f Minimum: %f Remaining: %f", \
+							GT_MODULE_NAME, amount, g_bGT_HordesDisabled, L4D2_CTimerGetCountdownDuration(L4D2CT_MobSpawnTimer), \
 								g_hCvarZMobSpawnMinIntervalNormal.FloatValue, L4D2_CTimerGetRemainingTime(L4D2CT_MobSpawnTimer));
 		}
 

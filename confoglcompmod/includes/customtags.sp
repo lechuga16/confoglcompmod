@@ -3,6 +3,8 @@
 #endif
 #define __confogl_customtags_included
 
+#define CT_MODULE_NAME				"CustomTags"
+
 // COPYRIGHT PSYCHONIC
 // USED WITH PERMISSION
 

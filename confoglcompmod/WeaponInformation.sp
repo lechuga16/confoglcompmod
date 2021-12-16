@@ -9,7 +9,7 @@
 	#define DEBUG_WI						1
 #endif
 
-#define DEBUG_WI_PREFIX						"[WepInfo]"
+#define WI_MODULE_NAME						"WepInfo"
 
 #define MODEL_PREFIX						"models/w_models/weapons/w_"
 #define MODEL_SURFIX						".mdl"
@@ -666,8 +666,8 @@ static int WI_GetWeaponIndex(int iEntity, const char[] sEntityClassName)
 	}
 
 #if (DEBUG_WI)
-	LogMessage("%s GetWeaponIndex( iEntity %i sEntityClassName \"%s\" )", DEBUG_WI_PREFIX, iEntity, sEntityClassName);
-	LogMessage("%s {", DEBUG_WI_PREFIX);
+	LogMessage("[%s] GetWeaponIndex( iEntity %i sEntityClassName \"%s\" )", WI_MODULE_NAME, iEntity, sEntityClassName);
+	LogMessage("[%s] {", WI_MODULE_NAME);
 #endif
 
 	//------------------------------------------------
@@ -684,7 +684,7 @@ static int WI_GetWeaponIndex(int iEntity, const char[] sEntityClassName)
 		int WepID = GetEntProp(iEntity, Prop_Send, "m_weaponID");
 
 		#if (DEBUG_WI)
-			LogMessage("%s     Dynamic weapon spawn, weaponID %i", DEBUG_WI_PREFIX, WepID);
+			LogMessage("[%s]     Dynamic weapon spawn, weaponID %i", WI_MODULE_NAME, WepID);
 		#endif
 
 		for (WeaponIndex = FIRST_WEAPON; WeaponIndex < NUM_OF_WEAPONS; WeaponIndex++) {
@@ -693,7 +693,7 @@ static int WI_GetWeaponIndex(int iEntity, const char[] sEntityClassName)
 			}
 
 			#if (DEBUG_WI)
-				LogMessage("%s     Weapon WeaponIndex %i", DEBUG_WI_PREFIX, WeaponIndex);
+				LogMessage("[%s]     Weapon WeaponIndex %i", WI_MODULE_NAME, WeaponIndex);
 			#endif
 
 			bFoundIndex = true;
@@ -720,7 +720,7 @@ static int WI_GetWeaponIndex(int iEntity, const char[] sEntityClassName)
 			}
 
 			#if (DEBUG_WI)
-				LogMessage("%s     Static spawn, weapon WeaponIndex %i", DEBUG_WI_PREFIX, WeaponIndex);
+				LogMessage("[%s]     Static spawn, weapon WeaponIndex %i", WI_MODULE_NAME, WeaponIndex);
 			#endif
 
 			bFoundIndex = true;
@@ -735,15 +735,15 @@ static int WI_GetWeaponIndex(int iEntity, const char[] sEntityClassName)
 
 	if (!bFoundIndex) {
 		#if (DEBUG_WI)
-			LogMessage("%s     Not found in weapon index", DEBUG_WI_PREFIX);
-			LogMessage("%s }", DEBUG_WI_PREFIX);
+			LogMessage("[%s]     Not found in weapon index", WI_MODULE_NAME);
+			LogMessage("[%s] }", WI_MODULE_NAME);
 		#endif
 
 		return WEAPON_NULL_INDEX;
 	}
 
 #if (DEBUG_WI)
-	LogMessage("%s }", DEBUG_WI_PREFIX);
+	LogMessage("[%s] }", WI_MODULE_NAME);
 #endif
 
 	return WeaponIndex;
@@ -788,8 +788,8 @@ static bool WI_IsStatic(int iEntity, int iWeaponIndex)
 static void WI_ReplaceWeapon(int iEntity, int iWeaponIndex, bool bSpawnerEvent = false)
 {
 	#if (DEBUG_WI)
-		LogMessage("%s     ReplaceWeapon( iEntity %i, iWeaponIndex %i, bSpawnerEvent %b )", DEBUG_WI_PREFIX, iEntity, iWeaponIndex, bSpawnerEvent);
-		LogMessage("%s     {", DEBUG_WI_PREFIX);
+		LogMessage("[%s]     ReplaceWeapon( iEntity %i, iWeaponIndex %i, bSpawnerEvent %b )", WI_MODULE_NAME, iEntity, iWeaponIndex, bSpawnerEvent);
+		LogMessage("[%s]     {", WI_MODULE_NAME);
 	#endif
 
 	//------------------------------------------------
@@ -807,8 +807,8 @@ static void WI_ReplaceWeapon(int iEntity, int iWeaponIndex, bool bSpawnerEvent =
 		KillEntity(iEntity);
 
 		#if (DEBUG_WI)
-			LogMessage("%s         Killing weapon as requested...", DEBUG_WI_PREFIX);
-			LogMessage("%s     }", DEBUG_WI_PREFIX);
+			LogMessage("[%s]         Killing weapon as requested...", WI_MODULE_NAME);
+			LogMessage("[%s]     }", WI_MODULE_NAME);
 		#endif
 
 		return;
@@ -843,8 +843,8 @@ static void WI_ReplaceWeapon(int iEntity, int iWeaponIndex, bool bSpawnerEvent =
 		SetEntityMoveType(iEntity, MOVETYPE_NONE);
 
 		#if (DEBUG_WI)
-			LogMessage("%s         Replacing static spawn with weapon_spawn, new iEntity %i, weaponID %i, model \"%s\"", \
-							DEBUG_WI_PREFIX, iEntity, Weapon_Attributes[iWeaponIndex][WeaponID], sModelBuffer);
+			LogMessage("[%s]         Replacing static spawn with weapon_spawn, new iEntity %i, weaponID %i, model \"%s\"", \
+							WI_MODULE_NAME, iEntity, Weapon_Attributes[iWeaponIndex][WeaponID], sModelBuffer);
 		#endif
 	}
 
@@ -866,7 +866,7 @@ static void WI_ReplaceWeapon(int iEntity, int iWeaponIndex, bool bSpawnerEvent =
 		SetEntityModel(iEntity, sModelBuffer);
 
 		#if (DEBUG_WI)
-			LogMessage("%s          Following replacement index, new weaponID %i, new model \"%s\"", DEBUG_WI_PREFIX, iWeaponIndex, sModelBuffer);
+			LogMessage("[%s]          Following replacement index, new weaponID %i, new model \"%s\"", WI_MODULE_NAME, iWeaponIndex, sModelBuffer);
 		#endif
 	}
 
@@ -878,8 +878,8 @@ static void WI_ReplaceWeapon(int iEntity, int iWeaponIndex, bool bSpawnerEvent =
 
 	if (Weapon_Attributes[iWeaponIndex][Tier1EquivalentIndex] == WEAPON_NULL_INDEX) {
 		#if (DEBUG_WI)
-			LogMessage("%s         No tier 1 equivalent, no need to proceed", DEBUG_WI_PREFIX);
-			LogMessage("%s     }", DEBUG_WI_PREFIX);
+			LogMessage("[%s]         No tier 1 equivalent, no need to proceed", WI_MODULE_NAME);
+			LogMessage("[%s]     }", WI_MODULE_NAME);
 		#endif
 
 		return;
@@ -900,18 +900,18 @@ static void WI_ReplaceWeapon(int iEntity, int iWeaponIndex, bool bSpawnerEvent =
 			&& GetVectorDistance(Weapon_fMapOrigin_End, fOrigin) > Weapon_fMapDist_End
 		) {
 			#if (DEBUG_WI)
-				LogMessage("%s         Weapon is outside of a saferoom", DEBUG_WI_PREFIX);
+				LogMessage("[%s]         Weapon is outside of a saferoom", WI_MODULE_NAME);
 			#endif
 
 			if (!bSpawnerEvent) {
 				#if (DEBUG_WI)
-					LogMessage("%s     }", DEBUG_WI_PREFIX);
+					LogMessage("[%s]     }", WI_MODULE_NAME);
 				#endif
 				return;
 			}
 		} else {
 			#if (DEBUG_WI)
-				LogMessage("%s         Weapon is inside a saferoom", DEBUG_WI_PREFIX);
+				LogMessage("[%s]         Weapon is inside a saferoom", WI_MODULE_NAME);
 			#endif
 			bIsInSaferoom = true;
 		}
@@ -928,8 +928,8 @@ static void WI_ReplaceWeapon(int iEntity, int iWeaponIndex, bool bSpawnerEvent =
 		if (!bSpawnerEvent) {
 			if ((!Weapon_bReplaceTier2 && !L4D_IsMissionFinalMap()) || (!Weapon_bReplaceTier2_Finale && L4D_IsMissionFinalMap())) {
 				#if (DEBUG_WI)
-					LogMessage("%s         We do not want to replace weapons, IsMapFinale %b", DEBUG_WI_PREFIX, L4D_IsMissionFinalMap());
-					LogMessage("%s     }", DEBUG_WI_PREFIX);
+					LogMessage("[%s]         We do not want to replace weapons, IsMapFinale %b", WI_MODULE_NAME, L4D_IsMissionFinalMap());
+					LogMessage("[%s]     }", WI_MODULE_NAME);
 				#endif
 
 				return;
@@ -937,9 +937,9 @@ static void WI_ReplaceWeapon(int iEntity, int iWeaponIndex, bool bSpawnerEvent =
 		} else {
 			if ((!Weapon_bLimitTier2 && !bIsInSaferoom) || (!Weapon_bLimitTier2_Safehouse && bIsInSaferoom)) {
 				#if (DEBUG_WI)
-					LogMessage("%s         We do not want to replace weapons, bLimitTier2 %b, bLimitTier2_Saferoom %b, bIsInSaferoom %b", \
-									DEBUG_WI_PREFIX, Weapon_bLimitTier2, Weapon_bLimitTier2_Safehouse, bIsInSaferoom);
-					LogMessage("%s     }", DEBUG_WI_PREFIX);
+					LogMessage("[%s]         We do not want to replace weapons, bLimitTier2 %b, bLimitTier2_Saferoom %b, bIsInSaferoom %b", \
+									WI_MODULE_NAME, Weapon_bLimitTier2, Weapon_bLimitTier2_Safehouse, bIsInSaferoom);
+					LogMessage("[%s]     }", WI_MODULE_NAME);
 				#endif
 
 				return;
@@ -948,7 +948,7 @@ static void WI_ReplaceWeapon(int iEntity, int iWeaponIndex, bool bSpawnerEvent =
 	}
 #if (DEBUG_WI)
 	else {
-		LogMessage("%s         bReplaceTier2_All %b", DEBUG_WI_PREFIX, Weapon_bReplaceTier2_All);
+		LogMessage("[%s]         bReplaceTier2_All %b", WI_MODULE_NAME, Weapon_bReplaceTier2_All);
 	}
 #endif
 
@@ -966,8 +966,8 @@ static void WI_ReplaceWeapon(int iEntity, int iWeaponIndex, bool bSpawnerEvent =
 	SetEntityModel(iEntity, sModelBuffer);
 
 #if (DEBUG_WI)
-	LogMessage("%s         Replacing Tier 2, new WeaponID %i, model \"%s\"", DEBUG_WI_PREFIX, Weapon_Attributes[iWeaponIndex][WeaponID], sModelBuffer);
-	LogMessage("%s     }", DEBUG_WI_PREFIX);
+	LogMessage("[%s]         Replacing Tier 2, new WeaponID %i, model \"%s\"", WI_MODULE_NAME, Weapon_Attributes[iWeaponIndex][WeaponID], sModelBuffer);
+	LogMessage("[%s]     }", WI_MODULE_NAME);
 #endif
 }
 
@@ -980,8 +980,8 @@ static void WI_ReplaceWeapon(int iEntity, int iWeaponIndex, bool bSpawnerEvent =
 static void WI_ReplaceExtra(int iEntity, int iWeaponIndex)
 {
 #if (DEBUG_WI)
-	LogMessage("%s     ReplaceExtra( iEntity %i, iWeaponIndex %i )", DEBUG_WI_PREFIX, iEntity, iWeaponIndex);
-	LogMessage("%s     {", DEBUG_WI_PREFIX);
+	LogMessage("[%s]     ReplaceExtra( iEntity %i, iWeaponIndex %i )", WI_MODULE_NAME, iEntity, iWeaponIndex);
+	LogMessage("[%s]     {", WI_MODULE_NAME);
 #endif
 
 	//------------------------------------------------
@@ -1000,8 +1000,8 @@ static void WI_ReplaceExtra(int iEntity, int iWeaponIndex)
 		KillEntity(iEntity);
 
 		#if (DEBUG_WI)
-			LogMessage("%s         Killing weapon as requested...", DEBUG_WI_PREFIX);
-			LogMessage("%s     }", DEBUG_WI_PREFIX);
+			LogMessage("[%s]         Killing weapon as requested...", WI_MODULE_NAME);
+			LogMessage("[%s]     }", WI_MODULE_NAME);
 		#endif
 
 		return;
@@ -1015,8 +1015,8 @@ static void WI_ReplaceExtra(int iEntity, int iWeaponIndex)
 	for (int Index = 0; Index < WEAPON_NUMBER_OF_START_KITS; Index++) {
 		if (Weapon_iKitEntity[Index] == iEntity) {
 			#if (DEBUG_WI)
-				LogMessage("%s         Start kit found, save entity", DEBUG_WI_PREFIX);
-				LogMessage("%s     }", DEBUG_WI_PREFIX);
+				LogMessage("[%s]         Start kit found, save entity", WI_MODULE_NAME);
+				LogMessage("[%s]     }", WI_MODULE_NAME);
 			#endif
 
 			return;
@@ -1055,8 +1055,8 @@ static void WI_ReplaceExtra(int iEntity, int iWeaponIndex)
 		KillEntity(iEntity);
 
 		#if (DEBUG_WI)
-			LogMessage("%s         Extra item is within a safe room, killing...", DEBUG_WI_PREFIX);
-			LogMessage("%s     }", DEBUG_WI_PREFIX);
+			LogMessage("[%s]         Extra item is within a safe room, killing...", WI_MODULE_NAME);
+			LogMessage("[%s]     }", WI_MODULE_NAME);
 		#endif
 
 		return;
@@ -1069,8 +1069,8 @@ static void WI_ReplaceExtra(int iEntity, int iWeaponIndex)
 
 	if (iWeaponIndex != WEAPON_FIRST_AID_KIT_INDEX) {
 		#if (DEBUG_WI)
-			LogMessage("%s         Not a medkit and not inside any saferoom, no need to go on", DEBUG_WI_PREFIX);
-			LogMessage("%s     }", DEBUG_WI_PREFIX);
+			LogMessage("[%s]         Not a medkit and not inside any saferoom, no need to go on", WI_MODULE_NAME);
+			LogMessage("[%s]     }", WI_MODULE_NAME);
 		#endif
 
 		return;
@@ -1086,8 +1086,8 @@ static void WI_ReplaceExtra(int iEntity, int iWeaponIndex)
 		KillEntity(iEntity);
 
 		#if (DEBUG_WI)
-			LogMessage("%s         Static medkit outside saferoom and finale, killing...", DEBUG_WI_PREFIX);
-			LogMessage("%s     }", DEBUG_WI_PREFIX);
+			LogMessage("[%s]         Static medkit outside saferoom and finale, killing...", WI_MODULE_NAME);
+			LogMessage("[%s]     }", WI_MODULE_NAME);
 		#endif
 
 		return;
@@ -1097,8 +1097,8 @@ static void WI_ReplaceExtra(int iEntity, int iWeaponIndex)
 		KillEntity(iEntity);
 
 		#if (DEBUG_WI)
-			LogMessage("%s         More than 4 saferoom medkits found, killing entity...", DEBUG_WI_PREFIX);
-			LogMessage("%s     }", DEBUG_WI_PREFIX);
+			LogMessage("[%s]         More than 4 saferoom medkits found, killing entity...", WI_MODULE_NAME);
+			LogMessage("[%s]     }", WI_MODULE_NAME);
 		#endif
 
 		return;
@@ -1120,7 +1120,7 @@ static void WI_ReplaceExtra(int iEntity, int iWeaponIndex)
 		SetEntityMoveType(iEntity, MOVETYPE_NONE);
 
 		#if (DEBUG_WI)
-			LogMessage("%s         Replacing start medkit with pills", DEBUG_WI_PREFIX);
+			LogMessage("[%s]         Replacing start medkit with pills", WI_MODULE_NAME);
 		#endif
 	} else if (bIsInFinaleArea && Weapon_bReplaceFinaleKits) {
 		GetEntPropVector(iEntity, Prop_Send, "m_angRotation", fRotation);
@@ -1135,7 +1135,7 @@ static void WI_ReplaceExtra(int iEntity, int iWeaponIndex)
 		SetEntityMoveType(iEntity, MOVETYPE_NONE);
 
 		#if (DEBUG_WI)
-			LogMessage("%s         Replacing finale medkit with pills", DEBUG_WI_PREFIX);
+			LogMessage("[%s]         Replacing finale medkit with pills", WI_MODULE_NAME);
 		#endif
 	}
 
@@ -1143,8 +1143,8 @@ static void WI_ReplaceExtra(int iEntity, int iWeaponIndex)
 		Weapon_iKitEntity[Weapon_iKitCount++] = iEntity;
 
 		#if (DEBUG_WI)
-			LogMessage("%s         Start medkit added to array", DEBUG_WI_PREFIX);
-			LogMessage("%s     }", DEBUG_WI_PREFIX);
+			LogMessage("[%s]         Start medkit added to array", WI_MODULE_NAME);
+			LogMessage("[%s]     }", WI_MODULE_NAME);
 		#endif
 	}
 }
@@ -1171,7 +1171,7 @@ static void WI_PrecacheModels()
 		PrecacheModel(ModelBuffer);
 
 		#if (DEBUG_WI)
-			LogMessage("%s Model precached: %s", DEBUG_WI_PREFIX, ModelBuffer);
+			LogMessage("[%s] Model precached: %s", WI_MODULE_NAME, ModelBuffer);
 		#endif
 	}
 }
@@ -1224,8 +1224,8 @@ public Action WI_RoundStartLoop(Handle hTimer)
 	WI_PrecacheModels();
 
 #if (DEBUG_WI)
-	LogMessage("%s Round Start Loop( )", DEBUG_WI_PREFIX);
-	LogMessage("%s {", DEBUG_WI_PREFIX);
+	LogMessage("[%s] Round Start Loop( )", WI_MODULE_NAME);
+	LogMessage("[%s] {", WI_MODULE_NAME);
 #endif
 
 	for (int KitIndex = 0; KitIndex < WEAPON_NUMBER_OF_START_KITS; KitIndex++) {
@@ -1257,7 +1257,7 @@ public Action WI_RoundStartLoop(Handle hTimer)
 			KillEntity(iEntity);
 
 			#if (DEBUG_WI)
-				LogMessage("%s Killing laser sight...", DEBUG_WI_PREFIX);
+				LogMessage("[%s] Killing laser sight...", WI_MODULE_NAME);
 			#endif
 
 			continue;
@@ -1265,8 +1265,8 @@ public Action WI_RoundStartLoop(Handle hTimer)
 	}
 
 #if (DEBUG_WI)
-	LogMessage("%s     Round Start Loop End", DEBUG_WI_PREFIX);
-	LogMessage("%s }", DEBUG_WI_PREFIX);
+	LogMessage("[%s]     Round Start Loop End", WI_MODULE_NAME);
+	LogMessage("[%s] }", WI_MODULE_NAME);
 #endif
 
 	return Plugin_Stop;

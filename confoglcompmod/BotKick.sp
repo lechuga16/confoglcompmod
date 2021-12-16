@@ -3,6 +3,8 @@
 #endif
 #define __bot_kick_included
 
+#define BK_MODULE_NAME				"BotKick"
+
 #define CHECKALLOWEDTIME			0.1
 #define BOTREPLACEVALIDTIME			0.2
 

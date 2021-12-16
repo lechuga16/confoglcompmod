@@ -3,6 +3,8 @@
 #endif
 #define __ghost_warp_included
 
+#define GW_MODULE_NAME			"GhostWarp"
+
 static int
 	GW_iLastTarget[MAXPLAYERS + 1] = {-1, ...};
 

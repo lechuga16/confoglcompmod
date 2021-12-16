@@ -3,6 +3,8 @@
 #endif
 #define __unprohibit_bosses_included
 
+#define UB_MODULE_NAME			"UnprohibitBosses"
+
 static bool
 	UB_bEnabled = true;
 

@@ -3,7 +3,9 @@
 #endif
 #define __finale_spawn_included
 
-#define SPAWN_RANGE			150
+#define FS_MODULE_NAME			"FinaleSpawn"
+
+#define SPAWN_RANGE				150
 
 static ConVar
 	FS_hEnabled = null;

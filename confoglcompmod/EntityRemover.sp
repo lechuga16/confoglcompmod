@@ -3,6 +3,8 @@
 #endif
 #define __entity_remover_included
 
+#define ER_MODULE_NAME				"EntityRemover"
+
 #define DEBUG_ER					0
 
 #define ER_KV_ACTION_KILL			1
@@ -76,7 +78,7 @@ static void ER_KV_Load()
 	char sNameBuff[PLATFORM_MAX_PATH], sDescBuff[256], sValBuff[32];
 
 	if (DEBUG_ER || IsDebugEnabled()) {
-		LogMessage("[ER] Loading EntityRemover KeyValues");
+		LogMessage("[%s] Loading EntityRemover KeyValues", ER_MODULE_NAME);
 	}
 
 	kERData = new KeyValues("EntityRemover");
@@ -84,14 +86,14 @@ static void ER_KV_Load()
 	BuildConfigPath(sNameBuff, sizeof(sNameBuff), "entityremove.txt"); //Build our filepath
 
 	if (!kERData.ImportFromFile(sNameBuff)) {
-		LogError("[ER] Couldn't load EntityRemover data!");
+		Debug_LogError(ER_MODULE_NAME, "Couldn't load EntityRemover data!");
 		ER_KV_Close();
 		return;
 	}
 
 	// Create cvars for all entity removes
 	if (DEBUG_ER || IsDebugEnabled()) {
-		LogMessage("[ER] Creating entry CVARs");
+		LogMessage("[%s] Creating entry CVARs", ER_MODULE_NAME);
 	}
 
 	kERData.GotoFirstSubKey();
@@ -107,7 +109,7 @@ static void ER_KV_Load()
 			CreateConVarEx(sNameBuff, sValBuff, sDescBuff);
 
 			if (DEBUG_ER || IsDebugEnabled()) {
-				LogMessage("[ER] Creating CVAR %s", sNameBuff);
+				LogMessage("[%s] Creating CVAR %s", ER_MODULE_NAME, sNameBuff);
 			}
 
 		} while(kERData.GotoNextKey());
@@ -265,7 +267,7 @@ static bool ER_KV_TakeAction(int action, int iEntity)
 	switch (action) {
 		case ER_KV_ACTION_KILL: {
 			if (DEBUG_ER || IsDebugEnabled()) {
-				LogMessage("[ER]     Killing!");
+				LogMessage("[%s]     Killing!", ER_MODULE_NAME);
 			}
 
 			KillEntity(iEntity);
@@ -273,7 +275,7 @@ static bool ER_KV_TakeAction(int action, int iEntity)
 			return false;
 		}
 		default: {
-			LogError("[ER] ParseEntity Encountered bad action!");
+			Debug_LogError(ER_MODULE_NAME, "ParseEntity Encountered bad action!");
 		}
 	}
 
@@ -307,7 +309,7 @@ static bool ER_ReplaceTriggerHurtGhost(int ent)
 		// Replace trigger_hurt_ghost with trigger_hurt
 		int replace = CreateEntityByName("trigger_hurt");
 		if (replace == -1) {
-			LogError("[ER] Could not create trigger_hurt entity!");
+			Debug_LogError(ER_MODULE_NAME, "Could not create trigger_hurt entity!");
 			return false;
 		}
 
@@ -358,7 +360,7 @@ public Action ER_RoundStart_Timer(Handle hTimer)
 {
 	char sBuffer[MAX_ENTITY_NAME_LENGTH];
 	if (DEBUG_ER || IsDebugEnabled()) {
-		LogMessage("[ER] Starting RoundStart Event");
+		LogMessage("[%s] Starting RoundStart Event", ER_MODULE_NAME);
 	}
 
 	if (kERData != null) {
@@ -380,7 +382,7 @@ public Action ER_RoundStart_Timer(Handle hTimer)
 			//empty
 		} else if (kERData != null && kERData.JumpToKey(sBuffer)) {
 			if (DEBUG_ER || IsDebugEnabled()) {
-				LogMessage("[ER] Dealing with an instance of %s", sBuffer);
+				LogMessage("[%s] Dealing with an instance of %s", ER_MODULE_NAME, sBuffer);
 			}
 
 			kERData.GotoFirstSubKey();

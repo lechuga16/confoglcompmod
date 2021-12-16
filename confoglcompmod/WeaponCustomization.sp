@@ -3,6 +3,8 @@
 #endif
 #define __weapon_customization_included
 
+#define WC_MODULE_NAME			"WeaponCustomization"
+
 static const char sSniperNames[][] =
 {
 	"weapon_hunting_rifle",

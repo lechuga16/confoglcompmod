@@ -4,6 +4,7 @@
 #define __boss_spawning_included
 
 #define DEBUG_BS			0
+#define BS_MODULE_NAME		"BossSpawning"
 
 #define MAX_TANKS			5
 #define MAX_WITCHES			5
@@ -81,7 +82,8 @@ public void BS_WitchSpawn(Event hEvent, const char[] sEventName, bool bDontBroad
 
 	// Can't track more witches if our witch array is full
 	if (BS_iWitchCount[view_as<int>(!BS_bIsFirstRound)] >= MAX_WITCHES) {
-		LogError("Failed to save a large number of witches to the array. Count: %d, Max: %d", BS_iWitchCount[view_as<int>(!BS_bIsFirstRound)], MAX_WITCHES);
+		Debug_LogError(BS_MODULE_NAME, "Failed to save a large number of witches to the array. Count: %d, Max: %d", \
+											BS_iWitchCount[view_as<int>(!BS_bIsFirstRound)], MAX_WITCHES);
 		return;
 	}
 
@@ -135,19 +137,20 @@ public void BS_TankSpawn(Event hEvent, const char[] sEventName, bool bDontBroadc
 
 	// If we reach MAX_TANKS, we don't have any room to store their locations
 	if (BS_iTankCount[view_as<int>(!BS_bIsFirstRound)] >= MAX_TANKS) {
-		LogError("Failed to save a large number of tanks to the array. Count: %d, Max: %d", BS_iTankCount[view_as<int>(!BS_bIsFirstRound)], MAX_TANKS);
+		Debug_LogError(BS_MODULE_NAME, "Failed to save a large number of tanks to the array. Count: %d, Max: %d", \
+											BS_iTankCount[view_as<int>(!BS_bIsFirstRound)], MAX_TANKS);
 		return;
 	}
 
 	if (DEBUG_BS || IsDebugEnabled()) {
-		LogMessage("[BS] Tracking this tank spawn. Currently, %d tanks", BS_iTankCount[view_as<int>(!BS_bIsFirstRound)]);
+		LogMessage("[%s] Tracking this tank spawn. Currently, %d tanks", BS_MODULE_NAME, BS_iTankCount[view_as<int>(!BS_bIsFirstRound)]);
 	}
 
 	if (BS_bIsFirstRound) {
 		GetClientAbsOrigin(iTankClient, BS_fTankSpawn[BS_iTankCount[0]]);
 		if (DEBUG_BS || IsDebugEnabled()) {
-			LogMessage("[BS] Saving tank at %f %f %f", \
-							BS_fTankSpawn[BS_iTankCount[0]][0], BS_fTankSpawn[BS_iTankCount[0]][1], BS_fTankSpawn[BS_iTankCount[0]][2]);
+			LogMessage("[%s] Saving tank at %f %f %f", \
+							BS_MODULE_NAME, BS_fTankSpawn[BS_iTankCount[0]][0], BS_fTankSpawn[BS_iTankCount[0]][1], BS_fTankSpawn[BS_iTankCount[0]][2]);
 		}
 
 		BS_iTankCount[0]++;
@@ -155,14 +158,14 @@ public void BS_TankSpawn(Event hEvent, const char[] sEventName, bool bDontBroadc
 		TeleportEntity(iTankClient, BS_fTankSpawn[BS_iTankCount[1]], NULL_VECTOR, NULL_VECTOR);
 
 		if (DEBUG_BS || IsDebugEnabled()) {
-			LogMessage("[BS] Teleporting tank to tank at %f %f %f", \
-							BS_fTankSpawn[BS_iTankCount[1]][0], BS_fTankSpawn[BS_iTankCount[1]][1], BS_fTankSpawn[BS_iTankCount[1]][2]);
+			LogMessage("[%s] Teleporting tank to tank at %f %f %f", \
+							BS_MODULE_NAME, BS_fTankSpawn[BS_iTankCount[1]][0], BS_fTankSpawn[BS_iTankCount[1]][1], BS_fTankSpawn[BS_iTankCount[1]][2]);
 		}
 
 		BS_iTankCount[1]++;
 	} else if (DEBUG_BS || IsDebugEnabled()) {
-		LogMessage("[BS] Not first round and not acceptable tank");
-		LogMessage("[BS] IsFirstRound: %d  R1Count: %d R2Count: %d", BS_bIsFirstRound, BS_iTankCount[0], BS_iTankCount[1]);
+		LogMessage("[%s] Not first round and not acceptable tank", BS_MODULE_NAME);
+		LogMessage("[%s] IsFirstRound: %d  R1Count: %d R2Count: %d", BS_MODULE_NAME, BS_bIsFirstRound, BS_iTankCount[0], BS_iTankCount[1]);
 	}
 }
 
@@ -200,7 +203,7 @@ static void FixZDistance(int iTankClient)
 	GetClientAbsOrigin(iTankClient, TankLocation);
 
 	if (DEBUG_BS || IsDebugEnabled()) {
-		LogMessage("[BS] tank z spawn check... Map: %s, Tank Location: %f, %f, %f", BS_sMap, TankLocation[0], TankLocation[1], TankLocation[2]);
+		LogMessage("[%s] tank z spawn check... Map: %s, Tank Location: %f, %f, %f", BS_MODULE_NAME, BS_sMap, TankLocation[0], TankLocation[1], TankLocation[2]);
 	}
 
 	for (int i = 0; i < NUM_OF_SURVIVORS; i++) {
@@ -211,14 +214,14 @@ static void FixZDistance(int iTankClient)
 			GetClientAbsOrigin(index, TempSurvivorLocation);
 
 			if (DEBUG_BS || IsDebugEnabled()) {
-				LogMessage("[BS] Survivor %d Location: %f, %f, %f", i, TempSurvivorLocation[0], TempSurvivorLocation[1], TempSurvivorLocation[2]);
+				LogMessage("[%s] Survivor %d Location: %f, %f, %f", BS_MODULE_NAME, i, TempSurvivorLocation[0], TempSurvivorLocation[1], TempSurvivorLocation[2]);
 			}
 
 			if (FloatAbs(TempSurvivorLocation[2] - TankLocation[2]) > distance) {
 				GetMapValueVector("tank_warpto", WarpToLocation);
 
 				if (!GetVectorLength(WarpToLocation, true)) {
-					LogMessage("[BS] tank_warpto missing from mapinfo.txt");
+					LogMessage("[%s] tank_warpto missing from mapinfo.txt", BS_MODULE_NAME);
 					return;
 				}
 

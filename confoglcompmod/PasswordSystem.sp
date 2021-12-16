@@ -3,6 +3,8 @@
 #endif
 #define __password_system_included
 
+#define PS_MODULE_NAME			"PasswordSystem"
+
 static char
 	PS_sPassword[128] = "\0";
 
@@ -153,7 +155,7 @@ static void PS_SetPasswordOnClients()
 			continue;
 		}
 
-		LogMessage("Set password on %N, password %s", client, pwbuffer);
+		LogMessage("[%s] Set password on %N, password %s", PS_MODULE_NAME, client, pwbuffer);
 		ClientCommand(client, "sv_password \"%s\"", pwbuffer);
 	}
 }

@@ -3,7 +3,8 @@
 #endif
 #define __map_info_included
 
-#define DEBUG_MI			0
+#define DEBUG_MI				0
+#define MI_MODULE_NAME			"MapInfo"
 
 static int
 	iMapMaxDistance = 0,
@@ -194,13 +195,13 @@ static void MI_KV_Load()
 	char sNameBuff[PLATFORM_MAX_PATH];
 
 	if (DEBUG_MI || IsDebugEnabled()) {
-		LogMessage("[MI] Loading MapInfo KeyValues");
+		LogMessage("[%s] Loading MapInfo KeyValues", MI_MODULE_NAME);
 	}
 
 	kMIData = new KeyValues("MapInfo");
 	BuildConfigPath(sNameBuff, sizeof(sNameBuff), "mapinfo.txt"); //Build our filepath
 	if (!kMIData.ImportFromFile(sNameBuff)) {
-		LogError("[MI] Couldn't load MapInfo data!");
+		Debug_LogError(MI_MODULE_NAME, "Couldn't load MapInfo data!");
 		MI_KV_Close();
 		return;
 	}
@@ -239,7 +240,7 @@ static void MI_KV_UpdateMapInfo()
 		ZeroVector(End_Point);
 		End_Dist = -1.0;
 		iMapMaxDistance = -1;
-		LogMessage("[MI] MapInfo for %s is missing.", sCurMap);
+		LogMessage("[%s] MapInfo for %s is missing.", MI_MODULE_NAME, sCurMap);
 	}
 
 	// Let's leave MIData on the current map

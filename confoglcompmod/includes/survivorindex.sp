@@ -3,6 +3,8 @@
 #endif
 #define __confogl_survivor_index_included
 
+#define SI_MODULE_NAME				"SurvivorIndex"
+
 static int
 	iSurvivorIndex[NUM_OF_SURVIVORS] = {0, ...};
 

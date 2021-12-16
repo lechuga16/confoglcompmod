@@ -3,6 +3,8 @@
 #endif
 #define __water_slowdown_included
 
+#define WS_MODULE_NAME			"WaterSlowdown"
+
 static float
 	WS_fSlowdownFactor = 0.90;
 

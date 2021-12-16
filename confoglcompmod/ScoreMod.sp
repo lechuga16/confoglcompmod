@@ -3,7 +3,8 @@
 #endif
 #define __scoremod_included
 
-#define DEBUG_SM	0
+#define DEBUG_SM			0
+#define SM_MODULE_NAME		"ScoreMod"
 
 static int
 	SM_iDefaultSurvivalBonus = 0,
@@ -348,7 +349,7 @@ public Action SM_Cmd_Health(int client, int args)
 	int iScore = RoundToFloor(fAvgHealth * SM_fMapMulti * SM_fHBRatio) * iAliveCount;
 
 	if (DEBUG_SM || IsDebugEnabled()) {
-		LogMessage("[ScoreMod] CalcScore: %d MapMulti: %.02f Multiplier %.02f", iScore, SM_fMapMulti, SM_fHBRatio);
+		LogMessage("[%s] CalcScore: %d MapMulti: %.02f Multiplier %.02f", SM_MODULE_NAME, iScore, SM_fMapMulti, SM_fHBRatio);
 	}
 
 	if (client) {
@@ -463,8 +464,8 @@ static float SM_CalculateAvgHealth(int &iAliveCount = 0)
 	float fAvgHealth = (iTotalHealth + fTotalAdjustedTempHealth) / iSurvCount;
 
 #if DEBUG_SM
-	LogMessage("[ScoreMod] TotalPerm: %d TotalAdjustedTemp: %.02f SurvCount: %d AliveCount: %d AvgHealth: %.02f", \
-					iTotalHealth, fTotalAdjustedTempHealth, iSurvCount, iAliveCount, fAvgHealth);
+	LogMessage("[%s] TotalPerm: %d TotalAdjustedTemp: %.02f SurvCount: %d AliveCount: %d AvgHealth: %.02f", \
+					SM_MODULE_NAME, iTotalHealth, fTotalAdjustedTempHealth, iSurvCount, iAliveCount, fAvgHealth);
 #endif
 
 	return fAvgHealth;
