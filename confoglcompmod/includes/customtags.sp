@@ -3,15 +3,12 @@
 #endif
 #define __confogl_customtags_included
 
-#define CT_MODULE_NAME				"CustomTags"
-
 // COPYRIGHT PSYCHONIC
 // USED WITH PERMISSION
 
-#define SV_TAG_SIZE 64
+#define CT_MODULE_NAME				"CustomTags"
 
-static stock EngineVersion
-	engine_version = Engine_Unknown;
+#define SV_TAG_SIZE 64
 
 static stock bool
 	are_tags_hooked = false,
