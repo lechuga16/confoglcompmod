@@ -149,12 +149,14 @@ void IT_OnModuleStart()
 	CreateItemListTrie();
 
 	// Create item spawns array;
+#if SOURCEMOD_V_MINOR > 9
+	ItemTracking curitem;
+#else
+	ItemTracking curitem[ItemTracking];
+#endif
+
 	for (int i = 0; i < ItemList_Size; i++) {
-		#if SOURCEMOD_V_MINOR > 9
-			g_hItemSpawns[i] = new ArrayList(sizeof(ItemTracking));
-		#else
-			g_hItemSpawns[i] = new ArrayList(view_as<int>(ItemTracking));
-		#endif
+		g_hItemSpawns[i] = new ArrayList(sizeof(curitem));
 	}
 
 	HookEvent("round_start", _IT_RoundStartEvent, EventHookMode_PostNoCopy);
@@ -325,7 +327,7 @@ static void SpawnItems()
 
 		for (int idx = 0; idx < arrsize; idx++) {
 			#if SOURCEMOD_V_MINOR > 9
-				g_hItemSpawns[itemidx].GetArray(idx, curitem, sizeof(ItemTracking));
+				g_hItemSpawns[itemidx].GetArray(idx, curitem, sizeof(curitem));
 			#else
 				g_hItemSpawns[itemidx].GetArray(idx, curitem[0], sizeof(curitem));
 			#endif
@@ -427,7 +429,7 @@ static void EnumerateSpawns()
 
 					// Push this instance onto our array for that item
 					#if SOURCEMOD_V_MINOR > 9
-						g_hItemSpawns[itemindex].PushArray(curitem, sizeof(ItemTracking));
+						g_hItemSpawns[itemindex].PushArray(curitem, sizeof(curitem));
 					#else
 						g_hItemSpawns[itemindex].PushArray(curitem[0], sizeof(curitem));
 					#endif
@@ -461,7 +463,7 @@ static void RemoveToLimits()
 				}
 
 				#if SOURCEMOD_V_MINOR > 9
-					g_hItemSpawns[itemidx].GetArray(killidx, curitem, sizeof(ItemTracking));
+					g_hItemSpawns[itemidx].GetArray(killidx, curitem, sizeof(curitem));
 
 					if (IsValidEdict(curitem.IT_entity)) {
 						KillEntity(curitem.IT_entity);

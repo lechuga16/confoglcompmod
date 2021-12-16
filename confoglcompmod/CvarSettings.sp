@@ -33,10 +33,12 @@ static ArrayList
 void CVS_OnModuleStart()
 {
 #if SOURCEMOD_V_MINOR > 9
-	CvarSettingsArray = new ArrayList(sizeof(CVSEntry));
+	CVSEntry cvsetting;
 #else
-	CvarSettingsArray = new ArrayList(view_as<int>(CVSEntry));
+	CVSEntry cvsetting[CVSEntry];
 #endif
+
+	CvarSettingsArray = new ArrayList(sizeof(cvsetting));
 
 	RegConsoleCmd("confogl_cvarsettings", CVS_CvarSettings_Cmd, "List all ConVars being enforced by Confogl");
 	RegConsoleCmd("confogl_cvardiff", CVS_CvarDiff_Cmd, "List any ConVars that have been changed from their initialized values");
@@ -147,7 +149,7 @@ public Action CVS_CvarSettings_Cmd(int client, int args)
 	CVSEntry cvsetting;
 
 	for (int i = offset; i < temp && i < cvscount; i++) {
-		CvarSettingsArray.GetArray(i, cvsetting, sizeof(CVSEntry));
+		CvarSettingsArray.GetArray(i, cvsetting, sizeof(cvsetting));
 
 		(cvsetting.CVSE_cvar).GetString(buffer, sizeof(buffer));
 		(cvsetting.CVSE_cvar).GetName(name, sizeof(name));
@@ -201,7 +203,7 @@ public Action CVS_CvarDiff_Cmd(int client, int args)
 	CVSEntry cvsetting;
 
 	while (offset < cvscount && foundCvars < 20) {
-		CvarSettingsArray.GetArray(offset, cvsetting, sizeof(CVSEntry));
+		CvarSettingsArray.GetArray(offset, cvsetting, sizeof(cvsetting));
 
 		(cvsetting.CVSE_cvar).GetString(buffer, sizeof(buffer));
 		(cvsetting.CVSE_cvar).GetName(name, sizeof(name));
@@ -247,7 +249,7 @@ static void ClearAllSettings()
 	CVSEntry cvsetting;
 
 	for (int i = 0; i < iSize; i++) {
-		CvarSettingsArray.GetArray(i, cvsetting, sizeof(CVSEntry));
+		CvarSettingsArray.GetArray(i, cvsetting, sizeof(cvsetting));
 
 		(cvsetting.CVSE_cvar).RemoveChangeHook(CVS_ConVarChange);
 		(cvsetting.CVSE_cvar).SetString(cvsetting.CVSE_oldval);
@@ -274,7 +276,7 @@ static void SetEnforcedCvars()
 	CVSEntry cvsetting;
 
 	for (int i = 0; i < iSize; i++) {
-		CvarSettingsArray.GetArray(i, cvsetting, sizeof(CVSEntry));
+		CvarSettingsArray.GetArray(i, cvsetting, sizeof(cvsetting));
 
 		#if CVARS_DEBUG
 			char debug_buffer[CVS_CVAR_MAXLEN];
@@ -334,7 +336,7 @@ static void AddCvar(const char[] cvar, const char[] newval)
 	CVSEntry newEntry;
 
 	for (int i = 0; i < iSize; i++) {
-		CvarSettingsArray.GetArray(i, newEntry, sizeof(CVSEntry));
+		CvarSettingsArray.GetArray(i, newEntry, sizeof(newEntry));
 
 		(newEntry.CVSE_cvar).GetName(cvarBuffer, CVS_CVAR_MAXLEN);
 
@@ -356,7 +358,7 @@ static void AddCvar(const char[] cvar, const char[] newval)
 	LogMessage("[%s] cvar = %s, newval = %s, oldval = %s", CVS_MODULE_NAME, cvar, newval, cvarBuffer);
 #endif
 
-	CvarSettingsArray.PushArray(newEntry, sizeof(CVSEntry));
+	CvarSettingsArray.PushArray(newEntry, sizeof(newEntry));
 #else
 	CVSEntry newEntry[CVSEntry];
 

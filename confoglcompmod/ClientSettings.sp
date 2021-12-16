@@ -45,10 +45,12 @@ static Handle
 void CLS_OnModuleStart()
 {
 #if SOURCEMOD_V_MINOR > 9
-	ClientSettingsArray = new ArrayList(sizeof(CLSEntry));
+	CLSEntry clsetting;
 #else
-	ClientSettingsArray = new ArrayList(view_as<int>(CLSEntry));
+	CLSEntry clsetting[CLSEntry];
 #endif
+
+	ClientSettingsArray = new ArrayList(sizeof(clsetting));
 
 	RegConsoleCmd("confogl_clientsettings", _ClientSettings_Cmd, "List Client settings enforced by confogl");
 
@@ -113,7 +115,7 @@ static void EnforceCliSettings(int client)
 #if SOURCEMOD_V_MINOR > 9
 	CLSEntry clsetting;
 	for (int i = 0; i < iSize; i++) {
-		ClientSettingsArray.GetArray(i, clsetting, sizeof(CLSEntry));
+		ClientSettingsArray.GetArray(i, clsetting, sizeof(clsetting));
 
 		QueryClientConVar(client, clsetting.CLSE_cvar, _EnforceCliSettings_QueryReply, i);
 	}
@@ -146,7 +148,7 @@ public void _EnforceCliSettings_QueryReply(QueryCookie cookie, int client, ConVa
 
 #if SOURCEMOD_V_MINOR > 9
 	CLSEntry clsetting;
-	ClientSettingsArray.GetArray(clsetting_index, clsetting, sizeof(CLSEntry));
+	ClientSettingsArray.GetArray(clsetting_index, clsetting, sizeof(clsetting));
 
 	if ((clsetting.CLSE_hasMin && fCvarVal < clsetting.CLSE_min)
 		|| (clsetting.CLSE_hasMax && fCvarVal > clsetting.CLSE_max)
@@ -237,7 +239,7 @@ public Action _ClientSettings_Cmd(int client, int args)
 	char message[256], shortbuf[64];
 	for (int i = 0; i < iSize; i++) {
 		#if SOURCEMOD_V_MINOR > 9
-			ClientSettingsArray.GetArray(i, clsetting, sizeof(CLSEntry));
+			ClientSettingsArray.GetArray(i, clsetting, sizeof(clsetting));
 			Format(message, sizeof(message), "[Confogl] Client CVar: %s ", clsetting.CLSE_cvar);
 
 			if (clsetting.CLSE_hasMin) {
@@ -410,7 +412,7 @@ static void _AddClientCvar(const char[] cvar, bool hasMin, float min, bool hasMa
 #if SOURCEMOD_V_MINOR > 9
 	CLSEntry newEntry;
 	for (int i = 0; i < iSize; i++) {
-		ClientSettingsArray.GetArray(i, newEntry, sizeof(CLSEntry));
+		ClientSettingsArray.GetArray(i, newEntry, sizeof(newEntry));
 		if (strcmp(newEntry.CLSE_cvar, cvar, false) == 0) {
 			Debug_LogError(CLS_MODULE_NAME, "Attempt to track CVar %s, which is already being tracked.", cvar);
 			return;
@@ -428,7 +430,7 @@ static void _AddClientCvar(const char[] cvar, bool hasMin, float min, bool hasMa
 		LogMessage("[%s] Tracking Cvar %s Min %d %f Max %d %f Action %d", CLS_MODULE_NAME, cvar, hasMin, min, hasMax, max, action);
 	}
 
-	ClientSettingsArray.PushArray(newEntry, sizeof(CLSEntry));
+	ClientSettingsArray.PushArray(newEntry, sizeof(newEntry));
 #else
 	CLSEntry newEntry[CLSEntry];
 	for (int i = 0; i < iSize; i++) {
